@@ -1,0 +1,67 @@
+:root {
+    --stateColor: #82c444;
+    --parkColor: #5ea8e5;
+    --hh: 155px;
+}
+
+html,
+body {
+    position: relative;
+    padding: 0px;
+}
+
+body {
+    margin: 0;
+    width: 100vw;
+    color: #333;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.two-column {
+    display: flex;
+    flex-direction: row;
+}
+
+.right-panel {
+    width: 350px;
+    background: white;
+}
+
+.left-panel {
+    height: 100vh;
+    flex-grow: 1;
+}
+
+.right-content {
+    display: flex;
+    flex-direction: column;
+}
+
+@media only screen and (max-width: 768px) {
+    .two-column {
+        flex-direction: column;
+    }
+    .right-panel {
+        width: 100% !important;
+    }
+    .left-panel {
+        height: 700px!important;
+    }
+    .right-content {
+        flex-direction: row;
+        padding-top: 15px!important;
+    }
+}
+
+#bip {
+    cursor: pointer;
+}
+
+#outside {
+    cursor: grab;
+}
+
+.leaflet-top {
+    top: var(--hh)!important;
+}
