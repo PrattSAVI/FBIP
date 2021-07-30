@@ -16,7 +16,7 @@
   let tileURL = 'https://api.mapbox.com/styles/v1/eichners/ckqtpfqjm12ti17mupyiishkx/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiZWljaG5lcnMiLCJhIjoiY2lrZzVneDI4MDAyZ3VkbTZmYWlyejUzayJ9.vEGckM-D3AjV4jXmdibXyw'
 
   L.tileLayer(tileURL, {
-    maxZoom: 20,
+    maxZoom: 19,
     minZoom: 15,
     attribution:'Design by <a href="https://commons.pratt.edu/savi/">SAVI</a>, Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
   }).addTo(map);
