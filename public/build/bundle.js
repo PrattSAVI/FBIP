@@ -14800,17 +14800,6 @@ var app = (function () {
     	return block;
     }
 
-    function getElementsById(elementID) {
-    	var elementCollection = new Array();
-    	var allElements = document.getElementsByTagName("*");
-
-    	for (i = 0; i < allElements.length; i++) {
-    		if (allElements[i].id == elementID) elementCollection.push(allElements[i]);
-    	}
-
-    	return elementCollection;
-    }
-
     function getColor(d) {
     	return d === "State"
     	? "var(--stateColor)"
@@ -14888,18 +14877,8 @@ var app = (function () {
     	function onEachFeature(feature, layer) {
     		//Only bind popup if BIP Column is not empty
     		if (feature.properties.BIP) {
-    			var popupContent = `${feature.properties.OwnerName}`;
-    			layer.bindPopup(popupContent);
-
-    			layer.on({
-    				click: activePolygon,
-    				mouseover: e => {
-    					layer.openPopup();
-    				},
-    				mouseout: e => {
-    					layer.closePopup();
-    				}
-    			});
+    			layer.openTooltip();
+    			layer.on({ click: activePolygon });
     		}
     	}
 
@@ -14914,6 +14893,24 @@ var app = (function () {
     			polygon._path.id = String(polygon.feature.properties.Block) + String(polygon.feature.properties.Lot) + " outside";
     		} else {
     			polygon._path.id = String(polygon.feature.properties.Block) + String(polygon.feature.properties.Lot) + " bip";
+    		}
+
+    		if (polygon.feature.properties.BIP) {
+    			polygon.bindTooltip(polygon.feature.properties['Text-Name'], { permanent: true, direction: 'center' }).openTooltip();
+    		}
+    	});
+
+    	map.on('zoomend', function (e) {
+    		var zoomLevel = map.getZoom();
+
+    		if (zoomLevel < 17) {
+    			[].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
+    				el.style.visibility = 'hidden';
+    			});
+    		} else {
+    			[].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
+    				el.style.visibility = 'visible';
+    			});
     		}
     	});
 
@@ -14937,7 +14934,6 @@ var app = (function () {
     		map_green,
     		geojson,
     		map,
-    		getElementsById,
     		activePolygon,
     		getColor,
     		LineColor,

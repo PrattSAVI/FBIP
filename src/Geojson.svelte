@@ -18,17 +18,6 @@
         map = value;
     });
 
-    function getElementsById(elementID){
-        var elementCollection = new Array();
-        var allElements = document.getElementsByTagName("*");
-        for(i = 0; i < allElements.length; i++){
-            if(allElements[i].id == elementID)
-                elementCollection.push(allElements[i]);
-
-        }
-        return elementCollection;
-    }
-
     //Zoom to active polygon and write id to store.
     function activePolygon(e){
 
@@ -90,12 +79,9 @@
     function onEachFeature(feature, layer) {
         //Only bind popup if BIP Column is not empty
         if( feature.properties.BIP ){
-            var popupContent = `${feature.properties.OwnerName}`;
-            layer.bindPopup(popupContent);
+            layer.openTooltip();
             layer.on({
                 click:activePolygon,
-                mouseover: e => {layer.openPopup()},
-                mouseout: e => {layer.closePopup()}
             }) 
         }
     };
@@ -113,7 +99,29 @@
             }else{
                 polygon._path.id = String(polygon.feature.properties.Block) + String(polygon.feature.properties.Lot) + " bip"
             }
-        });
+
+            if( polygon.feature.properties.BIP ){
+                polygon.bindTooltip(polygon.feature.properties['Text-Name'],{
+                    permanent:true,
+                    direction: 'center',
+                } ).openTooltip();
+            }
+    });
+
+
+    map.on('zoomend', function(e){
+        var zoomLevel = map.getZoom();
+        if (zoomLevel < 17 ){
+            [].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
+                el.style.visibility = 'hidden';
+            });
+        }else{
+            [].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
+                el.style.visibility = 'visible';
+            });
+        }
+    });
+    
 
 </script>
 
