@@ -1,21 +1,38 @@
 <script>
 	import LeafletMap from './Map.svelte'
-	import Header from './Header.svelte'
+	//import Header from './Header.svelte'
 	import {onMount} from 'svelte'
 	import GeoJson from './Geojson.svelte';
+	import GeoJsonBorder from './GeojsonBorder.svelte';
 	import InfoPanel from './InfoPanel.svelte';
+	import GeojsonParks from './GeojsonParks.svelte';
 
-	const url_lots = "/data/BIP_Lots_se_84.geojson";
+	const url_lots = "/data/BIP_FinalLots.geojson";
+	const url_border = "/data/BIP_boundary_4326.geojson";
+	const url_parks = "data/FBIP_other_parks_4326.geojson"
 
-	let data_lots;
 	let active_data;
+
+	let data = {
+		bip:[],
+		border:[],
+		parks:[]
+	}
 
 	onMount(async () => {
 		const res = await fetch( url_lots );
-		data_lots = await res.json();
-		data_lots = data_lots.features;
+		let data_lots = await res.json();
+		data.bip = data_lots.features;
 
-		console.log(data_lots);
+		const res2 = await fetch( url_border );
+		let border_lots = await res2.json();
+		data.border = border_lots.features;
+
+		const res3 = await fetch( url_parks );
+		let park_lots = await res3.json();
+		data.parks = park_lots.features;
+
+		console.log(data);
 
 	});
 
@@ -25,7 +42,7 @@
 		 let obj_id = active._path.id
 		 obj_id = obj_id.split(" ")[0]
 
-		active_data = data_lots.filter(function(feature){
+		active_data = data.bip.filter(function(feature){
 			let blocklot = String(feature.properties.Block) + String(feature.properties.Lot);
 			if( blocklot === obj_id ){
 				return true
@@ -37,13 +54,16 @@
 	
 </script>
 
-<Header />
-{#if data_lots}
 
+{#if data.parks.length > 0 }
 	<div class="two-column">
 		<div class="left-panel">
 			<LeafletMap >
-				<GeoJson on:message={handleMessage} geojson={data_lots} />
+				<GeoJsonBorder geojson={data.border} />
+				<GeojsonParks geojson={data.parks} />
+				<GeoJson on:message={handleMessage} geojson={data.bip} />
+
+
 			</LeafletMap>
 		</div>
 

@@ -8,19 +8,20 @@
 
 <div class="right-content">
 
-    
     {#if active_data}
+
+        <p><span id='info-title' >{active_data[0].properties['Text-Name']}</span></p>
         
         <div class="photo-loc"> <img alt="test" src="https://picsum.photos/150/150?random=1" /> </div>
 
-        {#if active_data[0].properties.OwnerName}
-
             <div class="info-container">
-                <p><span id='info-title' >{active_data[0].properties.OwnerName}</span></p>
-                <p><span id='info-title' >{active_data[0].properties.Address}</span></p>
-            </div>
-        {/if}
 
+                <p><span id='info-title' >{active_data[0].properties['Text-Name']}</span></p>
+                <p><span id='info-title' >{active_data[0].properties['Text-Acres']}</span></p>
+                <p><span id='info-title' >{active_data[0].properties['Text-Address']}</span></p>
+                <p><span id='info-title' >{active_data[0].properties['Text-Copy']}</span></p>
+
+            </div>
 
     {:else}
 
@@ -30,10 +31,6 @@
         </div>
 
     {/if}
-
-
-
-
 
 </div>
 

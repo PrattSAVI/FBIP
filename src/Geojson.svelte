@@ -10,6 +10,7 @@
     let map_green = "var(--green)";
    
     export let geojson;
+    console.log(geojson)
 
     //countValue is map object stored in the store.js
     let map;
