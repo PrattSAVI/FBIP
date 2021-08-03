@@ -13,7 +13,8 @@
   //set map to store. It needs to be accessed from other objects
   count.set(map)
 
-  let tileURL = 'https://api.mapbox.com/styles/v1/eichners/ckqtpfqjm12ti17mupyiishkx/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiZWljaG5lcnMiLCJhIjoiY2lrZzVneDI4MDAyZ3VkbTZmYWlyejUzayJ9.vEGckM-D3AjV4jXmdibXyw'
+  //let tileURL = 'https://api.mapbox.com/styles/v1/eichners/ckqtpfqjm12ti17mupyiishkx/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiZWljaG5lcnMiLCJhIjoiY2lrZzVneDI4MDAyZ3VkbTZmYWlyejUzayJ9.vEGckM-D3AjV4jXmdibXyw'
+  let tileURL = 'https://api.mapbox.com/styles/v1/eichners/ckrkvjuaq9ovv17o7o8xaf6fh/tiles/256/{z}/{x}/{y}@2x?access_token=pk.eyJ1IjoiZWljaG5lcnMiLCJhIjoiY2lrZzVneDI4MDAyZ3VkbTZmYWlyejUzayJ9.vEGckM-D3AjV4jXmdibXyw'
 
   L.tileLayer(tileURL, {
     maxZoom: 19,

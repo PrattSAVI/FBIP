@@ -10,7 +10,7 @@
     let map_green = "var(--green)";
    
     export let geojson;
-    console.log(geojson)
+    //console.log(geojson)
 
     //countValue is map object stored in the store.js
     let map;
@@ -18,15 +18,39 @@
         map = value;
     });
 
+    function getElementsById(elementID){
+        var elementCollection = new Array();
+        var allElements = document.getElementsByTagName("*");
+        for(i = 0; i < allElements.length; i++){
+            if(allElements[i].id == elementID)
+                elementCollection.push(allElements[i]);
+
+        }
+        return elementCollection;
+    }
+
     //Zoom to active polygon and write id to store.
     function activePolygon(e){
-        map.setView( e.target.getBounds().getCenter() ,18)
+
+        map.setView( e.target.getBounds().getCenter() ,17)
+
+
+        //Set an active class to clicked Element
+        let active = [...document.getElementsByClassName("active")];
+        if (active.length > 0){ //If an element is selected
+            active.forEach( function(feature){
+                feature.className.baseVal = 'leaflet-interactive'; //Set it back to leaflet
+            })
+        }
+        e.target._path.className.baseVal = e.target._path.className.baseVal + " active";
+        e.target.bringToFront()
+        
+        //Send active ID out
         dispatch('message', {
 			active: e.target
 		}); 
     }
 
-    //Sara's styling functions. 
     function getColor(d) {
         return d === "State" ? "var(--stateColor)" :
             d === "Parks"  ? "var(--parkColor)" :
@@ -34,8 +58,8 @@
                         '#FFFFFF';
     }
     function LineColor(d) {
-        return d === "State" ? "#4f8f0a" :
-            d === "Parks"  ? "#1a5b91" :
+        return d === "State" ? "white" :
+            d === "Parks"  ? "white" :
             d === ""  ? "black" :
                         '#000000';
     }
@@ -46,8 +70,8 @@
                         "0.4";
     }
     function lineWeight(d) {
-        return d === "State" ? 3 :
-            d === "Parks"  ? 3 :
+        return d === "State" ? 0.8 :
+            d === "Parks"  ? 0.8 :
             d === ""  ? .5:
                         .5;
     }
@@ -57,9 +81,9 @@
         return {
             fillColor: getColor(feature.properties.Owner),
             color: LineColor(feature.properties.Owner),
-            fillOpacity: getFill(feature.properties.Owner),
+            fillOpacity: 1, //getFill(feature.properties.Owner),
             weight: lineWeight(feature.properties.Owner),
-            opacity: 1,
+            opacity: 0.9,
         };
     }
 

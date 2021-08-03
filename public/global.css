@@ -1,11 +1,55 @@
 :root {
-    --stateColor: #82c444;
-    --parkColor: #5ea8e5;
+    --stateColor: #72b88b;
+    --parkColor: #82C444;
+    --otherParks: #c1dcce;
+    --borderOrange: #F4B303;
     --hh: 0px;
+    --tnsize: 120px;
+}
+
+
+/*Import Tisa Sans*/
+
+@import url("https://p.typekit.net/p.css?s=1&k=mat4asz&ht=tk&f=16790.16791.16794.16801&a=10393746&app=typekit&e=css");
+@font-face {
+    font-family: "ff-tisa-sans-web-pro";
+    src: url("https://use.typekit.net/af/6dd34d/00000000000000003b9b0796/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff2"), url("https://use.typekit.net/af/6dd34d/00000000000000003b9b0796/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff"), url("https://use.typekit.net/af/6dd34d/00000000000000003b9b0796/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("opentype");
+    font-display: auto;
+    font-style: normal;
+    font-weight: 700;
+}
+
+@font-face {
+    font-family: "ff-tisa-sans-web-pro";
+    src: url("https://use.typekit.net/af/ee7efe/00000000000000003b9b0797/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3") format("woff2"), url("https://use.typekit.net/af/ee7efe/00000000000000003b9b0797/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3") format("woff"), url("https://use.typekit.net/af/ee7efe/00000000000000003b9b0797/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3") format("opentype");
+    font-display: auto;
+    font-style: italic;
+    font-weight: 700;
+}
+
+@font-face {
+    font-family: "ff-tisa-sans-web-pro";
+    src: url("https://use.typekit.net/af/30ad0e/00000000000000003b9b0793/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i4&v=3") format("woff2"), url("https://use.typekit.net/af/30ad0e/00000000000000003b9b0793/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i4&v=3") format("woff"), url("https://use.typekit.net/af/30ad0e/00000000000000003b9b0793/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i4&v=3") format("opentype");
+    font-display: auto;
+    font-style: italic;
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "ff-tisa-sans-web-pro";
+    src: url("https://use.typekit.net/af/6f55e9/00000000000000003b9b0792/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("woff2"), url("https://use.typekit.net/af/6f55e9/00000000000000003b9b0792/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("woff"), url("https://use.typekit.net/af/6f55e9/00000000000000003b9b0792/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("opentype");
+    font-display: auto;
+    font-style: normal;
+    font-weight: 400;
+}
+
+.tk-ff-tisa-sans-web-pro {
+    font-family: "ff-tisa-sans-web-pro", sans-serif;
 }
 
 html,
 body {
+    font-family: "ff-tisa-sans-web-pro", sans-serif;
     position: relative;
     padding: 0px;
 }
@@ -15,7 +59,8 @@ body {
     width: 100vw;
     color: #333;
     box-sizing: border-box;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    max-height: 100vh!important;
+    overflow: hidden;
 }
 
 .two-column {
@@ -26,31 +71,77 @@ body {
 .right-panel {
     width: 350px;
     background: white;
+    border: 1px solid #999;
+    overflow-y: auto;
+    max-height: 100vh;
 }
 
 .left-panel {
     height: 100vh;
     flex-grow: 1;
+    max-height: 100vh;
 }
 
 .right-content {
     display: flex;
     flex-direction: column;
+    padding: var(--hh) 15px 10px 15px;
 }
 
-@media only screen and (max-width: 768px) {
+
+/* Right Panel and Folding */
+
+#pane-title {
+    font-size: 21pt;
+    font-weight: 1000;
+    color: var(--parkColor);
+    order: 1;
+}
+
+.info-container {
+    font-size: 11pt;
+    color: #444;
+    font-weight: 300;
+    padding: 10px;
+    order: 3;
+}
+
+.photo-loc {
+    width: 100%;
+    height: 250px;
+    background: #888;
+    order: 2;
+}
+
+@media only screen and (max-width: 690px) {
+    body {
+        overflow-y: auto;
+    }
     .two-column {
         flex-direction: column;
     }
     .right-panel {
         width: 100% !important;
-    }
-    .left-panel {
-        height: 700px!important;
+        height: 50%;
+        position: absolute;
+        bottom: 0px;
+        background-color: rgba(255, 255, 255, 0.8);
+        z-index: 2000000!important;
     }
     .right-content {
-        flex-direction: row;
+        flex-direction: column;
         padding-top: 15px!important;
+    }
+    .legend {
+        visibility: hidden;
+    }
+    .photo-loc {
+        width: var(--tnsize)!important;
+        height: var(--tnsize)!important;
+        order: 3!important;
+    }
+    .info-container {
+        order: 2!important;
     }
 }
 
@@ -64,4 +155,20 @@ body {
 
 .leaflet-top {
     top: var(--hh)!important;
+}
+
+#Border {
+    border-style: solid;
+    border-width: 5px;
+}
+
+.active {
+    stroke: var(--borderOrange);
+    stroke-width: 4;
+    z-index: 20002;
+}
+
+img {
+    width: 100%;
+    height: 100%;
 }

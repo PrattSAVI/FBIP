@@ -13,10 +13,10 @@
 
     function style(feature) {
         return {
-            color: "orange",
-            fillOpacity: 0,
-            weight: 2,
-            opacity: 1,
+            color: "var(--borderOrange)",
+            weight: 4,
+            dashArray: '5, 2', 
+            lineCap: 'butt',
         };
     }
 

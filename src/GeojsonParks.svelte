@@ -13,9 +13,10 @@
 
     function style(feature) {
         return {
-            fillColor:"red",
-            fillOpacity: 0.5,
-            weight: 0,
+            fillColor:"var(--otherParks)",
+            fillOpacity: 0.9,
+            color:'black',
+            weight: 0.5,
             opacity: 1,
         };
     }

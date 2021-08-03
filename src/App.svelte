@@ -6,9 +6,10 @@
 	import GeoJsonBorder from './GeojsonBorder.svelte';
 	import InfoPanel from './InfoPanel.svelte';
 	import GeojsonParks from './GeojsonParks.svelte';
+	import Legend from './Legend.svelte';
 
 	const url_lots = "/data/BIP_FinalLots.geojson";
-	const url_border = "/data/BIP_boundary_4326.geojson";
+	const url_border = "/data/BIP_lines_4326.geojson";
 	const url_parks = "data/FBIP_other_parks_4326.geojson"
 
 	let active_data;
@@ -59,11 +60,10 @@
 	<div class="two-column">
 		<div class="left-panel">
 			<LeafletMap >
-				<GeoJsonBorder geojson={data.border} />
 				<GeojsonParks geojson={data.parks} />
 				<GeoJson on:message={handleMessage} geojson={data.bip} />
-
-
+				<GeoJsonBorder geojson={data.border} />
+				<Legend />
 			</LeafletMap>
 		</div>
 
@@ -71,6 +71,9 @@
 			<InfoPanel {active_data}/>
 		</div>
 	</div>
+
+{:else}
+	<h1>Nothing to show here</h1>
 {/if}
 
 
