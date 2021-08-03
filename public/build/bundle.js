@@ -15743,7 +15743,7 @@ var app = (function () {
     		c: function create() {
     			h1 = element("h1");
     			h1.textContent = "Nothing to show here";
-    			add_location(h1, file, 75, 1, 1792);
+    			add_location(h1, file, 75, 1, 1973);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, h1, anchor);
@@ -15799,11 +15799,11 @@ var app = (function () {
     			div1 = element("div");
     			create_component(infopanel.$$.fragment);
     			attr_dev(div0, "class", "left-panel");
-    			add_location(div0, file, 60, 2, 1475);
+    			add_location(div0, file, 60, 2, 1656);
     			attr_dev(div1, "class", "right-panel");
-    			add_location(div1, file, 69, 2, 1709);
+    			add_location(div1, file, 69, 2, 1890);
     			attr_dev(div2, "class", "two-column");
-    			add_location(div2, file, 59, 1, 1448);
+    			add_location(div2, file, 59, 1, 1629);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div2, anchor);
@@ -16035,9 +16035,9 @@ var app = (function () {
     	return block;
     }
 
-    const url_lots = "/data/BIP_FinalLots.geojson";
-    const url_border = "/data/BIP_lines_4326.geojson";
-    const url_parks = "data/FBIP_other_parks_4326.geojson";
+    const url_lots = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/BIP_FinalLots.geojson";
+    const url_border = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/BIP_lines_4326.geojson";
+    const url_parks = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/FBIP_other_parks_4326.geojson";
 
     function instance($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;

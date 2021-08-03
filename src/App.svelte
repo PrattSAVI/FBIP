@@ -8,9 +8,9 @@
 	import GeojsonParks from './GeojsonParks.svelte';
 	import Legend from './Legend.svelte';
 
-	const url_lots = "/data/BIP_FinalLots.geojson";
-	const url_border = "/data/BIP_lines_4326.geojson";
-	const url_parks = "data/FBIP_other_parks_4326.geojson"
+	const url_lots = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/BIP_FinalLots.geojson";
+	const url_border = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/BIP_lines_4326.geojson";
+	const url_parks = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/FBIP_other_parks_4326.geojson"
 
 	let active_data;
 
