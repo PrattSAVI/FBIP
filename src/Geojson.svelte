@@ -122,10 +122,6 @@
         }
     });
 
-    [].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
-                console.log( el )
-            });
-    
 
 </script>
 

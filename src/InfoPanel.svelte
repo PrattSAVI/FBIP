@@ -3,6 +3,7 @@
     import {afterUpdate} from "svelte";
     export let active_data;
 
+    //List of all photos and BBLS
     let photos = [
         {site:"3022770000",photo:"1"},
         {site:"3022770000",photo:"2"},
@@ -33,24 +34,16 @@
     let active_photos = [];
 
     afterUpdate(() => {
-
-        
+        //Filter photos to active data
 		if (active_data){
-        
             active_photos = photos.filter(function(photo){
                 //console.log( "BBL: " + active_data[0].properties.BBL )
                 //console.log( "Site: " + photo.site )
                 return photo.site === active_data[0].properties.BBL
             })
-        
-            console.log(active_photos);
-
         }
 	});
 
-    
-    //https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/3022770000/1.jpg
-    
 
 </script>
 
@@ -59,7 +52,9 @@
 
     {#if active_data}
 
-        <p><span id='pane-title' >{active_data[0].properties['Text-Name']}</span></p>
+        <div class="info-title">
+            <span id='pane-title' >{active_data[0].properties['Text-Name']}</span>
+        </div>
         
         <div class="photo-container">
 
@@ -80,8 +75,12 @@
 
     {:else}
 
+        <div class="info-title">
+            <span id='pane-title' >About the Map</span>
+        </div>
+
         <div class="info-container">
-            <p><span id='pane-title' >About the Map</span></p>
+            
             <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Harum reiciendis, distinctio placeat inventore deleniti tenetur cupiditate mollitia, nemo asperiores beatae facilis ducimus aliquam libero saepe nesciunt excepturi rem pariatur cum?</p>
             <p>Partner Acknowledgments here. Don't Forget</p>
 
@@ -90,3 +89,12 @@
     {/if}
 
 </div>
+
+<style>
+    .info-title{
+        padding-left:10px;
+        padding-right: 10px;
+        padding-top: 25px;
+        padding-bottom: 25px;
+    }
+</style>
