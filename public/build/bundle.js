@@ -15183,7 +15183,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (82:4) {:else}
+    // (81:4) {:else}
     function create_else_block$1(ctx) {
     	let div;
     	let p0;
@@ -15206,12 +15206,12 @@ var app = (function () {
     			p2 = element("p");
     			p2.textContent = "Partner Acknowledgments here. Don't Forget";
     			attr_dev(span, "id", "pane-title");
-    			add_location(span, file$2, 84, 15, 2211);
-    			add_location(p0, file$2, 84, 12, 2208);
-    			add_location(p1, file$2, 85, 12, 2272);
-    			add_location(p2, file$2, 86, 12, 2532);
+    			add_location(span, file$2, 83, 15, 2316);
+    			add_location(p0, file$2, 83, 12, 2313);
+    			add_location(p1, file$2, 84, 12, 2377);
+    			add_location(p2, file$2, 85, 12, 2637);
     			attr_dev(div, "class", "info-container");
-    			add_location(div, file$2, 83, 8, 2166);
+    			add_location(div, file$2, 82, 8, 2271);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -15232,14 +15232,14 @@ var app = (function () {
     		block,
     		id: create_else_block$1.name,
     		type: "else",
-    		source: "(82:4) {:else}",
+    		source: "(81:4) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (61:4) {#if active_data}
+    // (60:4) {#if active_data}
     function create_if_block$1(ctx) {
     	let p0;
     	let span0;
@@ -15297,21 +15297,21 @@ var app = (function () {
     			span3 = element("span");
     			t7 = text(t7_value);
     			attr_dev(span0, "id", "pane-title");
-    			add_location(span0, file$2, 62, 11, 1467);
-    			add_location(p0, file$2, 62, 8, 1464);
+    			add_location(span0, file$2, 61, 11, 1514);
+    			add_location(p0, file$2, 61, 8, 1511);
     			attr_dev(div0, "class", "photo-container");
-    			add_location(div0, file$2, 64, 8, 1561);
+    			add_location(div0, file$2, 63, 8, 1608);
     			attr_dev(span1, "id", "info-title");
-    			add_location(span1, file$2, 75, 15, 1861);
-    			add_location(p1, file$2, 75, 12, 1858);
+    			add_location(span1, file$2, 74, 15, 1966);
+    			add_location(p1, file$2, 74, 12, 1963);
     			attr_dev(span2, "id", "info-title");
-    			add_location(span2, file$2, 76, 15, 1953);
-    			add_location(p2, file$2, 76, 12, 1950);
+    			add_location(span2, file$2, 75, 15, 2058);
+    			add_location(p2, file$2, 75, 12, 2055);
     			attr_dev(span3, "id", "info-title");
-    			add_location(span3, file$2, 77, 15, 2047);
-    			add_location(p3, file$2, 77, 12, 2044);
+    			add_location(span3, file$2, 76, 15, 2152);
+    			add_location(p3, file$2, 76, 12, 2149);
     			attr_dev(div1, "class", "info-container");
-    			add_location(div1, file$2, 73, 8, 1814);
+    			add_location(div1, file$2, 72, 8, 1919);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p0, anchor);
@@ -15342,22 +15342,23 @@ var app = (function () {
     			if (dirty & /*active_data*/ 1 && t0_value !== (t0_value = /*active_data*/ ctx[0][0].properties['Text-Name'] + "")) set_data_dev(t0, t0_value);
 
     			if (dirty & /*active_photos*/ 2) {
-    				const old_length = each_value.length;
     				each_value = /*active_photos*/ ctx[1];
     				validate_each_argument(each_value);
     				let i;
 
-    				for (i = old_length; i < each_value.length; i += 1) {
+    				for (i = 0; i < each_value.length; i += 1) {
     					const child_ctx = get_each_context(ctx, each_value, i);
 
-    					if (!each_blocks[i]) {
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
     						each_blocks[i] = create_each_block(child_ctx);
     						each_blocks[i].c();
     						each_blocks[i].m(div0, null);
     					}
     				}
 
-    				for (i = each_value.length; i < old_length; i += 1) {
+    				for (; i < each_blocks.length; i += 1) {
     					each_blocks[i].d(1);
     				}
 
@@ -15382,14 +15383,14 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(61:4) {#if active_data}",
+    		source: "(60:4) {#if active_data}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (67:12) {#each active_photos as photo }
+    // (66:12) {#each active_photos as photo }
     function create_each_block(ctx) {
     	let div;
     	let img;
@@ -15402,15 +15403,20 @@ var app = (function () {
     			img = element("img");
     			t = space();
     			attr_dev(img, "alt", "test");
-    			if (!src_url_equal(img.src, img_src_value = "https://picsum.photos/250/250?random=1")) attr_dev(img, "src", img_src_value);
-    			add_location(img, file$2, 67, 40, 1679);
+    			if (!src_url_equal(img.src, img_src_value = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/" + /*photo*/ ctx[3].site + "/" + /*photo*/ ctx[3].photo + ".jpg")) attr_dev(img, "src", img_src_value);
+    			add_location(img, file$2, 66, 40, 1726);
     			attr_dev(div, "class", "photo-loc");
-    			add_location(div, file$2, 67, 16, 1655);
+    			add_location(div, file$2, 66, 16, 1702);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
     			append_dev(div, img);
     			append_dev(div, t);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*active_photos*/ 2 && !src_url_equal(img.src, img_src_value = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/" + /*photo*/ ctx[3].site + "/" + /*photo*/ ctx[3].photo + ".jpg")) {
+    				attr_dev(img, "src", img_src_value);
+    			}
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div);
@@ -15421,7 +15427,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(67:12) {#each active_photos as photo }",
+    		source: "(66:12) {#each active_photos as photo }",
     		ctx
     	});
 
@@ -15444,7 +15450,7 @@ var app = (function () {
     			div = element("div");
     			if_block.c();
     			attr_dev(div, "class", "right-content");
-    			add_location(div, file$2, 58, 0, 1400);
+    			add_location(div, file$2, 57, 0, 1447);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -15501,7 +15507,6 @@ var app = (function () {
     		{ site: "3022940001", photo: "2" },
     		{ site: "3023010060", photo: "1" },
     		{ site: "3023010060", photo: "2" },
-    		{ site: "3023010060", photo: "3" },
     		{ site: "3023160001", photo: "1" },
     		{ site: "3023160001", photo: "2" },
     		{ site: "3023160001", photo: "3" },

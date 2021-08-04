@@ -16,7 +16,6 @@
 
         {site:"3023010060",photo:"1"},
         {site:"3023010060",photo:"2"},
-        {site:"3023010060",photo:"3"},
 
         {site:"3023160001",photo:"1"},
         {site:"3023160001",photo:"2"},
@@ -50,7 +49,7 @@
 	});
 
     
-
+    //https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/3022770000/1.jpg
     
 
 </script>
@@ -65,7 +64,7 @@
         <div class="photo-container">
 
             {#each active_photos as photo }
-                <div class="photo-loc"> <img alt="test" src="https://picsum.photos/250/250?random=1" /> </div>
+                <div class="photo-loc"> <img alt="test" src= "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/{photo.site}/{photo.photo}.jpg" /> </div>
             {/each}
 
             
