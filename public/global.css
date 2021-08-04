@@ -71,16 +71,22 @@ body {
 .photo-container {
     display: flex;
     flex-direction: column;
+    order: 2;
 }
 
 .photo-loc {
     background: #888;
-    order: 2;
+    margin-bottom: 10px;
 }
 
 @media only screen and (max-width: 690px) {
     body {
         overflow-y: auto;
+    }
+    .photo-container {
+        flex-direction: row;
+        order: 3!important;
+        margin-left: 10px;
     }
     .two-column {
         flex-direction: column;
@@ -103,6 +109,7 @@ body {
         width: var(--tnsize)!important;
         height: var(--tnsize)!important;
         order: 3!important;
+        margin-right: 10px;
     }
     .info-container {
         order: 2!important;
