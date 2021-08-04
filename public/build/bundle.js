@@ -96,6 +96,12 @@ var app = (function () {
     function detach(node) {
         node.parentNode.removeChild(node);
     }
+    function destroy_each(iterations, detaching) {
+        for (let i = 0; i < iterations.length; i += 1) {
+            if (iterations[i])
+                iterations[i].d(detaching);
+        }
+    }
     function element(name) {
         return document.createElement(name);
     }
@@ -137,6 +143,9 @@ var app = (function () {
     }
     function onMount(fn) {
         get_current_component().$$.on_mount.push(fn);
+    }
+    function afterUpdate(fn) {
+        get_current_component().$$.after_update.push(fn);
     }
     function createEventDispatcher() {
         const component = get_current_component();
@@ -416,6 +425,15 @@ var app = (function () {
             return;
         dispatch_dev('SvelteDOMSetData', { node: text, data });
         text.data = data;
+    }
+    function validate_each_argument(arg) {
+        if (typeof arg !== 'string' && !(arg && typeof arg === 'object' && 'length' in arg)) {
+            let msg = '{#each} only iterates over array-like objects.';
+            if (typeof Symbol === 'function' && arg && Symbol.iterator in arg) {
+                msg += ' You can use a spread to convert this iterable into an array.';
+            }
+            throw new Error(msg);
+        }
     }
     function validate_slots(name, slot, keys) {
         for (const slot_key of Object.keys(slot)) {
@@ -15159,7 +15177,13 @@ var app = (function () {
     const { console: console_1$1 } = globals;
     const file$2 = "src\\InfoPanel.svelte";
 
-    // (25:4) {:else}
+    function get_each_context(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[3] = list[i];
+    	return child_ctx;
+    }
+
+    // (82:4) {:else}
     function create_else_block$1(ctx) {
     	let div;
     	let p0;
@@ -15182,12 +15206,12 @@ var app = (function () {
     			p2 = element("p");
     			p2.textContent = "Partner Acknowledgments here. Don't Forget";
     			attr_dev(span, "id", "pane-title");
-    			add_location(span, file$2, 27, 15, 755);
-    			add_location(p0, file$2, 27, 12, 752);
-    			add_location(p1, file$2, 28, 12, 816);
-    			add_location(p2, file$2, 29, 12, 1076);
+    			add_location(span, file$2, 84, 15, 2211);
+    			add_location(p0, file$2, 84, 12, 2208);
+    			add_location(p1, file$2, 85, 12, 2272);
+    			add_location(p2, file$2, 86, 12, 2532);
     			attr_dev(div, "class", "info-container");
-    			add_location(div, file$2, 26, 8, 710);
+    			add_location(div, file$2, 83, 8, 2166);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -15208,14 +15232,14 @@ var app = (function () {
     		block,
     		id: create_else_block$1.name,
     		type: "else",
-    		source: "(25:4) {:else}",
+    		source: "(82:4) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (11:4) {#if active_data}
+    // (61:4) {#if active_data}
     function create_if_block$1(ctx) {
     	let p0;
     	let span0;
@@ -15223,8 +15247,6 @@ var app = (function () {
     	let t0;
     	let t1;
     	let div0;
-    	let img;
-    	let img_src_value;
     	let t2;
     	let div1;
     	let p1;
@@ -15241,6 +15263,13 @@ var app = (function () {
     	let span3;
     	let t7_value = /*active_data*/ ctx[0][0].properties['Text-Copy'] + "";
     	let t7;
+    	let each_value = /*active_photos*/ ctx[1];
+    	validate_each_argument(each_value);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+    	}
 
     	const block = {
     		c: function create() {
@@ -15249,7 +15278,11 @@ var app = (function () {
     			t0 = text(t0_value);
     			t1 = space();
     			div0 = element("div");
-    			img = element("img");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
     			t2 = space();
     			div1 = element("div");
     			p1 = element("p");
@@ -15264,24 +15297,21 @@ var app = (function () {
     			span3 = element("span");
     			t7 = text(t7_value);
     			attr_dev(span0, "id", "pane-title");
-    			add_location(span0, file$2, 12, 11, 158);
-    			add_location(p0, file$2, 12, 8, 155);
-    			attr_dev(img, "alt", "test");
-    			if (!src_url_equal(img.src, img_src_value = "https://picsum.photos/250/250?random=1")) attr_dev(img, "src", img_src_value);
-    			add_location(img, file$2, 14, 32, 276);
-    			attr_dev(div0, "class", "photo-loc");
-    			add_location(div0, file$2, 14, 8, 252);
+    			add_location(span0, file$2, 62, 11, 1467);
+    			add_location(p0, file$2, 62, 8, 1464);
+    			attr_dev(div0, "class", "photo-container");
+    			add_location(div0, file$2, 64, 8, 1561);
     			attr_dev(span1, "id", "info-title");
-    			add_location(span1, file$2, 18, 15, 405);
-    			add_location(p1, file$2, 18, 12, 402);
+    			add_location(span1, file$2, 75, 15, 1861);
+    			add_location(p1, file$2, 75, 12, 1858);
     			attr_dev(span2, "id", "info-title");
-    			add_location(span2, file$2, 19, 15, 497);
-    			add_location(p2, file$2, 19, 12, 494);
+    			add_location(span2, file$2, 76, 15, 1953);
+    			add_location(p2, file$2, 76, 12, 1950);
     			attr_dev(span3, "id", "info-title");
-    			add_location(span3, file$2, 20, 15, 591);
-    			add_location(p3, file$2, 20, 12, 588);
+    			add_location(span3, file$2, 77, 15, 2047);
+    			add_location(p3, file$2, 77, 12, 2044);
     			attr_dev(div1, "class", "info-container");
-    			add_location(div1, file$2, 16, 8, 358);
+    			add_location(div1, file$2, 73, 8, 1814);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p0, anchor);
@@ -15289,7 +15319,11 @@ var app = (function () {
     			append_dev(span0, t0);
     			insert_dev(target, t1, anchor);
     			insert_dev(target, div0, anchor);
-    			append_dev(div0, img);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(div0, null);
+    			}
+
     			insert_dev(target, t2, anchor);
     			insert_dev(target, div1, anchor);
     			append_dev(div1, p1);
@@ -15306,6 +15340,30 @@ var app = (function () {
     		},
     		p: function update(ctx, dirty) {
     			if (dirty & /*active_data*/ 1 && t0_value !== (t0_value = /*active_data*/ ctx[0][0].properties['Text-Name'] + "")) set_data_dev(t0, t0_value);
+
+    			if (dirty & /*active_photos*/ 2) {
+    				const old_length = each_value.length;
+    				each_value = /*active_photos*/ ctx[1];
+    				validate_each_argument(each_value);
+    				let i;
+
+    				for (i = old_length; i < each_value.length; i += 1) {
+    					const child_ctx = get_each_context(ctx, each_value, i);
+
+    					if (!each_blocks[i]) {
+    						each_blocks[i] = create_each_block(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(div0, null);
+    					}
+    				}
+
+    				for (i = each_value.length; i < old_length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value.length;
+    			}
+
     			if (dirty & /*active_data*/ 1 && t3_value !== (t3_value = /*active_data*/ ctx[0][0].properties['Text-Acres'] + "")) set_data_dev(t3, t3_value);
     			if (dirty & /*active_data*/ 1 && t5_value !== (t5_value = /*active_data*/ ctx[0][0].properties['Text-Address'] + "")) set_data_dev(t5, t5_value);
     			if (dirty & /*active_data*/ 1 && t7_value !== (t7_value = /*active_data*/ ctx[0][0].properties['Text-Copy'] + "")) set_data_dev(t7, t7_value);
@@ -15314,6 +15372,7 @@ var app = (function () {
     			if (detaching) detach_dev(p0);
     			if (detaching) detach_dev(t1);
     			if (detaching) detach_dev(div0);
+    			destroy_each(each_blocks, detaching);
     			if (detaching) detach_dev(t2);
     			if (detaching) detach_dev(div1);
     		}
@@ -15323,7 +15382,46 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(11:4) {#if active_data}",
+    		source: "(61:4) {#if active_data}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (67:12) {#each active_photos as photo }
+    function create_each_block(ctx) {
+    	let div;
+    	let img;
+    	let img_src_value;
+    	let t;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			img = element("img");
+    			t = space();
+    			attr_dev(img, "alt", "test");
+    			if (!src_url_equal(img.src, img_src_value = "https://picsum.photos/250/250?random=1")) attr_dev(img, "src", img_src_value);
+    			add_location(img, file$2, 67, 40, 1679);
+    			attr_dev(div, "class", "photo-loc");
+    			add_location(div, file$2, 67, 16, 1655);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			append_dev(div, img);
+    			append_dev(div, t);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block.name,
+    		type: "each",
+    		source: "(67:12) {#each active_photos as photo }",
     		ctx
     	});
 
@@ -15346,7 +15444,7 @@ var app = (function () {
     			div = element("div");
     			if_block.c();
     			attr_dev(div, "class", "right-content");
-    			add_location(div, file$2, 8, 0, 91);
+    			add_location(div, file$2, 58, 0, 1400);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -15391,7 +15489,44 @@ var app = (function () {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('InfoPanel', slots, []);
     	let { active_data } = $$props;
-    	console.log(active_data);
+
+    	let photos = [
+    		{ site: "3022770000", photo: "1" },
+    		{ site: "3022770000", photo: "2" },
+    		{ site: "3022770000", photo: "3" },
+    		{ site: "3022770000", photo: "4" },
+    		{ site: "3022870000", photo: "1" },
+    		{ site: "3022870000", photo: "2" },
+    		{ site: "3022940001", photo: "1" },
+    		{ site: "3022940001", photo: "2" },
+    		{ site: "3023010060", photo: "1" },
+    		{ site: "3023010060", photo: "2" },
+    		{ site: "3023010060", photo: "3" },
+    		{ site: "3023160001", photo: "1" },
+    		{ site: "3023160001", photo: "2" },
+    		{ site: "3023160001", photo: "3" },
+    		{ site: "3025900025", photo: "1" },
+    		{ site: "3025900025", photo: "2" },
+    		{ site: "3025900025", photo: "3" },
+    		{ site: "3025900025", photo: "4" },
+    		{ site: "3025900100", photo: "1" },
+    		{ site: "3025900100", photo: "2" }
+    	];
+
+    	let active_photos = [];
+
+    	afterUpdate(() => {
+    		if (active_data) {
+    			$$invalidate(1, active_photos = photos.filter(function (photo) {
+    				//console.log( "BBL: " + active_data[0].properties.BBL )
+    				//console.log( "Site: " + photo.site )
+    				return photo.site === active_data[0].properties.BBL;
+    			}));
+
+    			console.log(active_photos);
+    		}
+    	});
+
     	const writable_props = ['active_data'];
 
     	Object.keys($$props).forEach(key => {
@@ -15402,17 +15537,24 @@ var app = (function () {
     		if ('active_data' in $$props) $$invalidate(0, active_data = $$props.active_data);
     	};
 
-    	$$self.$capture_state = () => ({ active_data });
+    	$$self.$capture_state = () => ({
+    		afterUpdate,
+    		active_data,
+    		photos,
+    		active_photos
+    	});
 
     	$$self.$inject_state = $$props => {
     		if ('active_data' in $$props) $$invalidate(0, active_data = $$props.active_data);
+    		if ('photos' in $$props) photos = $$props.photos;
+    		if ('active_photos' in $$props) $$invalidate(1, active_photos = $$props.active_photos);
     	};
 
     	if ($$props && "$$inject" in $$props) {
     		$$self.$inject_state($$props.$$inject);
     	}
 
-    	return [active_data];
+    	return [active_data, active_photos];
     }
 
     class InfoPanel extends SvelteComponentDev {
