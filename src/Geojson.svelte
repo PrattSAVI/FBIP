@@ -20,7 +20,6 @@
 
         map.setView( e.target.getBounds().getCenter() ,17)
 
-
         //Set an active class to clicked Element
         let active = [...document.getElementsByClassName("active")];
         if (active.length > 0){ //If an element is selected
@@ -29,10 +28,8 @@
             })
         }
 
-        //let borderBehind = document.getElementById("BorderBehind");
-        //let borderFront = document.getElementById("Border");
-
-        console.log(e)
+        //Bring all polygons, (layer) back so that the border is visible
+        layer.bringToBack();
 
         e.target._path.className.baseVal = e.target._path.className.baseVal + " active";
         e.target.bringToFront()
@@ -55,12 +52,6 @@
             d === ""  ? "black" :
                         '#000000';
     }
-    function getFill(d) {
-        return d === "State" ? "0.8" :
-            d === "Parks"  ? "0.8" :
-            d === ""  ? "0.4" :
-                        "0.4";
-    }
     function lineWeight(d) {
         return d === "State" ? 0.8 :
             d === "Parks"  ? 0.8 :
@@ -73,7 +64,7 @@
         return {
             fillColor: getColor(feature.properties.Owner),
             color: LineColor(feature.properties.Owner),
-            fillOpacity: 1, //getFill(feature.properties.Owner),
+            fillOpacity: 0.9, //getFill(feature.properties.Owner),
             weight: lineWeight(feature.properties.Owner),
             opacity: 0.9,
         };
@@ -103,10 +94,12 @@
                 polygon._path.id = String(polygon.feature.properties.Block) + String(polygon.feature.properties.Lot) + " bip"
             }
 
+            //Add Labels
             if( polygon.feature.properties.BIP ){
                 polygon.bindTooltip(polygon.feature.properties['Text-Name'],{
                     permanent:true,
                     direction: 'center',
+                    offset: [-40, -20]
                 } ).openTooltip();
             }
     });

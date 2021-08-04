@@ -83,19 +83,11 @@
         <div class="info-container">
             
             <p>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Harum reiciendis, distinctio placeat inventore deleniti tenetur cupiditate mollitia, nemo asperiores beatae facilis ducimus aliquam libero saepe nesciunt excepturi rem pariatur cum?</p>
-            <p>Partner Acknowledgments here. Don't Forget</p>
+            <br>
+            <p>Support for this project has been provided by the <span style="color:var(--parkColor);font-weight:bold">City Parks Foundation</span> and the <span style="color:var(--parkColor);font-weight:bold">NYC Green Relief & Recovery Fund.</span></p>
 
         </div>
 
     {/if}
 
 </div>
-
-<style>
-    .info-title{
-        padding-left:10px;
-        padding-right: 10px;
-        margin-top: 25px;
-        padding-bottom: 25px;
-    }
-</style>

@@ -1,7 +1,7 @@
 :root {
     --stateColor: #72b88b;
     --parkColor: #82C444;
-    --otherParks: #c1dcce;
+    --otherParks: #72b88b;
     --borderOrange: #F4B303;
     --selectColor: #5BBA02;
     --hh: 0px;
@@ -22,6 +22,11 @@ body {
     box-sizing: border-box;
     max-height: 100vh!important;
     overflow: hidden;
+}
+
+p {
+    margin: 0;
+    padding: 0;
 }
 
 .two-column {
@@ -64,14 +69,26 @@ body {
     font-size: 11pt;
     color: #444;
     font-weight: 400;
-    padding: 10px;
+    padding: 0px 15px 0px 15px;
     order: 3;
+}
+
+.info-container>p {
+    margin-top: 15px;
+}
+
+.info-title {
+    padding-left: 15px;
+    padding-right: 10px;
+    margin-top: 15px;
+    margin-bottom: 15px
 }
 
 .photo-container {
     display: flex;
     flex-direction: column;
     order: 2;
+    flex-wrap: wrap;
 }
 
 .photo-loc {

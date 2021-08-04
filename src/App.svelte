@@ -76,7 +76,18 @@
 	</div>
 
 {:else}
-	<h1>Nothing to show here</h1>
+	<div class="wait">
+		Loading.... <br>
+		Please Wait...
+	</div>
 {/if}
 
-
+<style>
+	.wait{
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		margin-top: -50px;
+		margin-left: -50px;
+	}
+</style>
