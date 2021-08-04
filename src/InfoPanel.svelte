@@ -59,10 +59,11 @@
         <div class="photo-container">
 
             {#each active_photos as photo }
-                <div class="photo-loc"> <img alt="test" src= "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/{photo.site}/{photo.photo}.jpg" /> </div>
+                <div class="photo-loc"> 
+                    <img alt="test" src= "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/{photo.site}/{photo.photo}.jpg" /> 
+                </div>
             {/each}
 
-            
         </div>
 
         <div class="info-container">
@@ -94,7 +95,7 @@
     .info-title{
         padding-left:10px;
         padding-right: 10px;
-        padding-top: 25px;
+        margin-top: 25px;
         padding-bottom: 25px;
     }
 </style>

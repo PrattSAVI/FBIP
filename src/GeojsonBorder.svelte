@@ -44,6 +44,11 @@
             //console.log(polygon);
         });
 
+    layer.eachLayer(function (polygon) {
+        polygon._path.id = "BorderBehind"
+        //console.log(polygon);
+    });
+
 </script>
 
 

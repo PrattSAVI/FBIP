@@ -5,7 +5,7 @@
     --borderOrange: #F4B303;
     --selectColor: #5BBA02;
     --hh: 0px;
-    --tnsize: 120px;
+    --tnsize: 150px;
 }
 
 html,
@@ -75,8 +75,11 @@ body {
 }
 
 .photo-loc {
-    background: #888;
     margin-bottom: 10px;
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    object-fit: cover;
 }
 
 @media only screen and (max-width: 690px) {
@@ -106,10 +109,11 @@ body {
         visibility: hidden;
     }
     .photo-loc {
-        width: var(--tnsize)!important;
+        width: auto;
         height: var(--tnsize)!important;
         order: 3!important;
         margin-right: 10px;
+        object-fit: cover;
     }
     .info-container {
         order: 2!important;

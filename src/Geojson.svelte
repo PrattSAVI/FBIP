@@ -6,9 +6,6 @@
     import { createEventDispatcher } from 'svelte';
 	const dispatch = createEventDispatcher();
 
-    let map_blue = "var(--blue)";
-    let map_green = "var(--green)";
-   
     export let geojson;
     //console.log(geojson)
 
@@ -31,6 +28,12 @@
                 feature.className.baseVal = 'leaflet-interactive'; //Set it back to leaflet
             })
         }
+
+        //let borderBehind = document.getElementById("BorderBehind");
+        //let borderFront = document.getElementById("Border");
+
+        console.log(e)
+
         e.target._path.className.baseVal = e.target._path.className.baseVal + " active";
         e.target.bringToFront()
         
