@@ -55,6 +55,9 @@
 	
 </script>
 
+<svelte:head>
+	<link rel="stylesheet" href="https://use.typekit.net/kjc8ltt.css">
+</svelte:head>
 
 {#if data.parks.length > 0 }
 	<div class="two-column">

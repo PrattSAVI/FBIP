@@ -11,11 +11,24 @@
         map = value;
     });
 
+    //White Line Behind the dashed Border
+    function styleBehind(feature) {
+        return {
+            color: "white",
+            weight: 5,
+        };
+    }
+
+    const layerBehind = L.geoJSON(geojson,{
+        style: styleBehind,
+    }).addTo(map);
+
+    //Dashed Orange Line
     function style(feature) {
         return {
             color: "var(--borderOrange)",
             weight: 4,
-            dashArray: '5, 2', 
+            dashArray: '5, 3', 
             lineCap: 'butt',
         };
     }
@@ -24,6 +37,7 @@
         style: style,
     }).addTo(map);
 
+    
     // Assign a seperate ID for park and outside elements. 
     layer.eachLayer(function (polygon) {
             polygon._path.id = "Border"

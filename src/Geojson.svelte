@@ -108,7 +108,7 @@
             }
     });
 
-
+    //Hide tooltips based on zoom level. Currently This is set to 17
     map.on('zoomend', function(e){
         var zoomLevel = map.getZoom();
         if (zoomLevel < 17 ){
@@ -121,6 +121,10 @@
             });
         }
     });
+
+    [].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
+                console.log( el )
+            });
     
 
 </script>

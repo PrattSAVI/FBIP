@@ -8,49 +8,9 @@
     --tnsize: 120px;
 }
 
-
-/*Import Tisa Sans*/
-
-@import url("https://p.typekit.net/p.css?s=1&k=mat4asz&ht=tk&f=16790.16791.16794.16801&a=10393746&app=typekit&e=css");
-@font-face {
-    font-family: "ff-tisa-sans-web-pro";
-    src: url("https://use.typekit.net/af/6dd34d/00000000000000003b9b0796/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff2"), url("https://use.typekit.net/af/6dd34d/00000000000000003b9b0796/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff"), url("https://use.typekit.net/af/6dd34d/00000000000000003b9b0796/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("opentype");
-    font-display: auto;
-    font-style: normal;
-    font-weight: 700;
-}
-
-@font-face {
-    font-family: "ff-tisa-sans-web-pro";
-    src: url("https://use.typekit.net/af/ee7efe/00000000000000003b9b0797/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3") format("woff2"), url("https://use.typekit.net/af/ee7efe/00000000000000003b9b0797/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3") format("woff"), url("https://use.typekit.net/af/ee7efe/00000000000000003b9b0797/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i7&v=3") format("opentype");
-    font-display: auto;
-    font-style: italic;
-    font-weight: 700;
-}
-
-@font-face {
-    font-family: "ff-tisa-sans-web-pro";
-    src: url("https://use.typekit.net/af/30ad0e/00000000000000003b9b0793/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i4&v=3") format("woff2"), url("https://use.typekit.net/af/30ad0e/00000000000000003b9b0793/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i4&v=3") format("woff"), url("https://use.typekit.net/af/30ad0e/00000000000000003b9b0793/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=i4&v=3") format("opentype");
-    font-display: auto;
-    font-style: italic;
-    font-weight: 400;
-}
-
-@font-face {
-    font-family: "ff-tisa-sans-web-pro";
-    src: url("https://use.typekit.net/af/6f55e9/00000000000000003b9b0792/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("woff2"), url("https://use.typekit.net/af/6f55e9/00000000000000003b9b0792/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("woff"), url("https://use.typekit.net/af/6f55e9/00000000000000003b9b0792/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n4&v=3") format("opentype");
-    font-display: auto;
-    font-style: normal;
-    font-weight: 400;
-}
-
-.tk-ff-tisa-sans-web-pro {
-    font-family: "ff-tisa-sans-web-pro", sans-serif;
-}
-
 html,
 body {
-    font-family: "ff-tisa-sans-web-pro", sans-serif;
+    font-family: neue-haas-grotesk-text, sans-serif;
     position: relative;
     padding: 0px;
 }
@@ -93,8 +53,10 @@ body {
 /* Right Panel and Folding */
 
 #pane-title {
+    font-family: neue-haas-grotesk-display, sans-serif;
     font-size: 21pt;
-    font-weight: 1000;
+    font-weight: 700;
+    font-style: normal;
     color: var(--selectColor);
     order: 1;
 }
@@ -187,5 +149,4 @@ img {
     white-space: normal!important;
     width: 100px;
     line-height: 11pt;
-    ;
 }
