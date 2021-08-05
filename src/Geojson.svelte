@@ -99,7 +99,7 @@
                 polygon.bindTooltip(polygon.feature.properties['Text-Name'],{
                     permanent:true,
                     direction: 'center',
-                    offset: [-40, -20]
+                    offset: [-40, -20] //Center Labels. 
                 } ).openTooltip();
             }
     });

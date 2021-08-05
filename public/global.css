@@ -179,3 +179,30 @@ img {
     width: 100px;
     line-height: 11pt;
 }
+
+
+/* Works on Firefox */
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #cfcfcf white;
+    scroll-behavior: smooth !important;
+}
+
+
+/* Works on Chrome, Edge, and Safari */
+
+*::-webkit-scrollbar {
+    width: 12px;
+    scroll-behavior: smooth !important;
+}
+
+*::-webkit-scrollbar-track {
+    background: white;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: #cfcfcf;
+    border-radius: 20px;
+    border: 3px solid white;
+}

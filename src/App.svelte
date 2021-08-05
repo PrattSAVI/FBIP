@@ -1,23 +1,20 @@
 <script>
 	import LeafletMap from './Map.svelte'
-	//import Header from './Header.svelte'
 	import {onMount} from 'svelte'
 	import GeoJson from './Geojson.svelte';
 	import GeoJsonBorder from './GeojsonBorder.svelte';
 	import InfoPanel from './InfoPanel.svelte';
-	import GeojsonParks from './GeojsonParks.svelte';
 	import Legend from './Legend.svelte';
 
 	const url_lots = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/BIP_FinalLots.geojson";
 	const url_border = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/BIP_lines_4326.geojson";
-	const url_parks = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/FBIP_other_parks_4326.geojson"
 
 	let active_data;
 
 	let data = {
 		bip:[],
 		border:[],
-		parks:[]
+		//parks:[]
 	}
 
 	onMount(async () => {
@@ -29,12 +26,7 @@
 		let border_lots = await res2.json();
 		data.border = border_lots.features;
 
-		const res3 = await fetch( url_parks );
-		let park_lots = await res3.json();
-		data.parks = park_lots.features;
-
-		console.log(data);
-
+		//console.log(data);
 	});
 
 	//Handle Clicked Geojson Object, Point or Polygon. Returns active Polygon Object
@@ -59,11 +51,10 @@
 	<link rel="stylesheet" href="https://use.typekit.net/kjc8ltt.css">
 </svelte:head>
 
-{#if data.parks.length > 0 }
+{#if data.border.length > 0 }
 	<div class="two-column">
 		<div class="left-panel">
 			<LeafletMap >
-				<GeojsonParks geojson={data.parks} />
 				<GeoJson on:message={handleMessage} geojson={data.bip} />
 				<GeoJsonBorder geojson={data.border} />
 				<Legend />
