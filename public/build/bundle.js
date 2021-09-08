@@ -87,6 +87,9 @@ var app = (function () {
         }
         return -1;
     }
+    function action_destroyer(action_result) {
+        return action_result && is_function(action_result.destroy) ? action_result.destroy : noop;
+    }
     function append(target, node) {
         target.appendChild(node);
     }
@@ -114,6 +117,10 @@ var app = (function () {
     function empty() {
         return text('');
     }
+    function listen(node, event, handler, options) {
+        node.addEventListener(event, handler, options);
+        return () => node.removeEventListener(event, handler, options);
+    }
     function attr(node, attribute, value) {
         if (value == null)
             node.removeAttribute(attribute);
@@ -125,6 +132,9 @@ var app = (function () {
     }
     function set_style(node, key, value, important) {
         node.style.setProperty(key, value, important ? 'important' : '');
+    }
+    function toggle_class(element, name, toggle) {
+        element.classList[toggle ? 'add' : 'remove'](name);
     }
     function custom_event(type, detail, bubbles = false) {
         const e = document.createEvent('CustomEvent');
@@ -147,6 +157,9 @@ var app = (function () {
     function afterUpdate(fn) {
         get_current_component().$$.after_update.push(fn);
     }
+    function onDestroy(fn) {
+        get_current_component().$$.on_destroy.push(fn);
+    }
     function createEventDispatcher() {
         const component = get_current_component();
         return (type, detail) => {
@@ -161,6 +174,16 @@ var app = (function () {
             }
         };
     }
+    // TODO figure out if we still want to support
+    // shorthand events, or if we want to implement
+    // a real bubbling mechanism
+    function bubble(component, event) {
+        const callbacks = component.$$.callbacks[event.type];
+        if (callbacks) {
+            // @ts-ignore
+            callbacks.slice().forEach(fn => fn.call(this, event));
+        }
+    }
 
     const dirty_components = [];
     const binding_callbacks = [];
@@ -173,6 +196,10 @@ var app = (function () {
             update_scheduled = true;
             resolved_promise.then(flush);
         }
+    }
+    function tick() {
+        schedule_update();
+        return resolved_promise;
     }
     function add_render_callback(fn) {
         render_callbacks.push(fn);
@@ -268,6 +295,96 @@ var app = (function () {
         : typeof globalThis !== 'undefined'
             ? globalThis
             : global);
+    function outro_and_destroy_block(block, lookup) {
+        transition_out(block, 1, 1, () => {
+            lookup.delete(block.key);
+        });
+    }
+    function update_keyed_each(old_blocks, dirty, get_key, dynamic, ctx, list, lookup, node, destroy, create_each_block, next, get_context) {
+        let o = old_blocks.length;
+        let n = list.length;
+        let i = o;
+        const old_indexes = {};
+        while (i--)
+            old_indexes[old_blocks[i].key] = i;
+        const new_blocks = [];
+        const new_lookup = new Map();
+        const deltas = new Map();
+        i = n;
+        while (i--) {
+            const child_ctx = get_context(ctx, list, i);
+            const key = get_key(child_ctx);
+            let block = lookup.get(key);
+            if (!block) {
+                block = create_each_block(key, child_ctx);
+                block.c();
+            }
+            else if (dynamic) {
+                block.p(child_ctx, dirty);
+            }
+            new_lookup.set(key, new_blocks[i] = block);
+            if (key in old_indexes)
+                deltas.set(key, Math.abs(i - old_indexes[key]));
+        }
+        const will_move = new Set();
+        const did_move = new Set();
+        function insert(block) {
+            transition_in(block, 1);
+            block.m(node, next);
+            lookup.set(block.key, block);
+            next = block.first;
+            n--;
+        }
+        while (o && n) {
+            const new_block = new_blocks[n - 1];
+            const old_block = old_blocks[o - 1];
+            const new_key = new_block.key;
+            const old_key = old_block.key;
+            if (new_block === old_block) {
+                // do nothing
+                next = new_block.first;
+                o--;
+                n--;
+            }
+            else if (!new_lookup.has(old_key)) {
+                // remove old block
+                destroy(old_block, lookup);
+                o--;
+            }
+            else if (!lookup.has(new_key) || will_move.has(new_key)) {
+                insert(new_block);
+            }
+            else if (did_move.has(old_key)) {
+                o--;
+            }
+            else if (deltas.get(new_key) > deltas.get(old_key)) {
+                did_move.add(new_key);
+                insert(new_block);
+            }
+            else {
+                will_move.add(old_key);
+                o--;
+            }
+        }
+        while (o--) {
+            const old_block = old_blocks[o];
+            if (!new_lookup.has(old_block.key))
+                destroy(old_block, lookup);
+        }
+        while (n)
+            insert(new_blocks[n - 1]);
+        return new_blocks;
+    }
+    function validate_each_keys(ctx, list, get_context, get_key) {
+        const keys = new Set();
+        for (let i = 0; i < list.length; i++) {
+            const key = get_key(get_context(ctx, list, i));
+            if (keys.has(key)) {
+                throw new Error('Cannot have duplicate keys in a keyed each');
+            }
+            keys.add(key);
+        }
+    }
     function create_component(block) {
         block && block.c();
     }
@@ -411,6 +528,19 @@ var app = (function () {
     function detach_dev(node) {
         dispatch_dev('SvelteDOMRemove', { node });
         detach(node);
+    }
+    function listen_dev(node, event, handler, options, has_prevent_default, has_stop_propagation) {
+        const modifiers = options === true ? ['capture'] : options ? Array.from(Object.keys(options)) : [];
+        if (has_prevent_default)
+            modifiers.push('preventDefault');
+        if (has_stop_propagation)
+            modifiers.push('stopPropagation');
+        dispatch_dev('SvelteDOMAddEventListener', { node, event, handler, modifiers });
+        const dispose = listen(node, event, handler, options);
+        return () => {
+            dispatch_dev('SvelteDOMRemoveEventListener', { node, event, handler, modifiers });
+            dispose();
+        };
     }
     function attr_dev(node, attribute, value) {
         attr(node, attribute, value);
@@ -14587,9 +14717,9 @@ var app = (function () {
     const count = writable(map);
 
     /* src\Map.svelte generated by Svelte v3.41.0 */
-    const file$3 = "src\\Map.svelte";
+    const file$8 = "src\\Map.svelte";
 
-    function create_fragment$5(ctx) {
+    function create_fragment$a(ctx) {
     	let link0;
     	let link1;
     	let t;
@@ -14609,12 +14739,12 @@ var app = (function () {
     			attr_dev(link0, "href", "https://unpkg.com/leaflet@1.6.0/dist/leaflet.css");
     			attr_dev(link0, "integrity", "sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==");
     			attr_dev(link0, "crossorigin", "");
-    			add_location(link0, file$3, 35, 2, 1128);
+    			add_location(link0, file$8, 35, 2, 1128);
     			attr_dev(link1, "href", "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css");
     			attr_dev(link1, "rel", "stylesheet");
-    			add_location(link1, file$3, 36, 2, 1335);
+    			add_location(link1, file$8, 36, 2, 1335);
     			attr_dev(div, "class", "map svelte-16q73l0");
-    			add_location(div, file$3, 46, 0, 1534);
+    			add_location(div, file$8, 46, 0, 1534);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -14669,7 +14799,7 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$5.name,
+    		id: create_fragment$a.name,
     		type: "component",
     		source: "",
     		ctx
@@ -14678,7 +14808,7 @@ var app = (function () {
     	return block;
     }
 
-    function instance$5($$self, $$props, $$invalidate) {
+    function instance$a($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Map', slots, ['default']);
     	let mapContainer;
@@ -14746,20 +14876,22 @@ var app = (function () {
     class Map$1 extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$5, create_fragment$5, safe_not_equal, {});
+    		init(this, options, instance$a, create_fragment$a, safe_not_equal, {});
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "Map",
     			options,
-    			id: create_fragment$5.name
+    			id: create_fragment$a.name
     		});
     	}
     }
 
     /* src\Geojson.svelte generated by Svelte v3.41.0 */
 
-    function create_fragment$4(ctx) {
+    const { console: console_1 } = globals;
+
+    function create_fragment$9(ctx) {
     	let current;
     	const default_slot_template = /*#slots*/ ctx[2].default;
     	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[1], null);
@@ -14810,7 +14942,7 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$4.name,
+    		id: create_fragment$9.name,
     		type: "component",
     		source: "",
     		ctx
@@ -14850,13 +14982,13 @@ var app = (function () {
     	};
     }
 
-    function instance$4($$self, $$props, $$invalidate) {
+    function instance$9($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Geojson', slots, ['default']);
     	const dispatch = createEventDispatcher();
     	let { geojson } = $$props;
+    	console.log(geojson);
 
-    	//console.log(geojson)
     	//countValue is map object stored in the store.js
     	let map;
 
@@ -14938,7 +15070,7 @@ var app = (function () {
     	const writable_props = ['geojson'];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Geojson> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1.warn(`<Geojson> was created with unknown prop '${key}'`);
     	});
 
     	$$self.$$set = $$props => {
@@ -14977,20 +15109,20 @@ var app = (function () {
     class Geojson extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$4, create_fragment$4, safe_not_equal, { geojson: 0 });
+    		init(this, options, instance$9, create_fragment$9, safe_not_equal, { geojson: 0 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "Geojson",
     			options,
-    			id: create_fragment$4.name
+    			id: create_fragment$9.name
     		});
 
     		const { ctx } = this.$$;
     		const props = options.props || {};
 
     		if (/*geojson*/ ctx[0] === undefined && !('geojson' in props)) {
-    			console.warn("<Geojson> was created without expected prop 'geojson'");
+    			console_1.warn("<Geojson> was created without expected prop 'geojson'");
     		}
     	}
 
@@ -15005,7 +15137,7 @@ var app = (function () {
 
     /* src\GeojsonBorder.svelte generated by Svelte v3.41.0 */
 
-    function create_fragment$3(ctx) {
+    function create_fragment$8(ctx) {
     	let current;
     	const default_slot_template = /*#slots*/ ctx[2].default;
     	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[1], null);
@@ -15056,7 +15188,7 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_fragment$3.name,
+    		id: create_fragment$8.name,
     		type: "component",
     		source: "",
     		ctx
@@ -15079,7 +15211,7 @@ var app = (function () {
     	};
     }
 
-    function instance$3($$self, $$props, $$invalidate) {
+    function instance$8($$self, $$props, $$invalidate) {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('GeojsonBorder', slots, ['default']);
     	let { geojson } = $$props;
@@ -15140,13 +15272,13 @@ var app = (function () {
     class GeojsonBorder extends SvelteComponentDev {
     	constructor(options) {
     		super(options);
-    		init(this, options, instance$3, create_fragment$3, safe_not_equal, { geojson: 0 });
+    		init(this, options, instance$8, create_fragment$8, safe_not_equal, { geojson: 0 });
 
     		dispatch_dev("SvelteRegisterComponent", {
     			component: this,
     			tagName: "GeojsonBorder",
     			options,
-    			id: create_fragment$3.name
+    			id: create_fragment$8.name
     		});
 
     		const { ctx } = this.$$;
@@ -15166,6 +15298,2387 @@ var app = (function () {
     	}
     }
 
+    function getNextPageIndexLimited(currentPageIndex, pagesCount) {
+      if (pagesCount < 1) throw new Error('pagesCount must be at least 1')
+      return Math.min(Math.max(currentPageIndex + 1, 0), pagesCount - 1)
+    }
+
+    function getNextPageIndexInfinte(currentPageIndex, pagesCount) {
+      if (pagesCount < 1) throw new Error('pagesCount must be at least 1')
+      const newCurrentPageIndex = Math.max(currentPageIndex, 0) + 1;
+      return newCurrentPageIndex > pagesCount - 1 ? 0 : Math.max(newCurrentPageIndex, 0)
+    }
+
+    function getNextPageIndexFn(infinite) {
+      return infinite ? getNextPageIndexInfinte : getNextPageIndexLimited
+    }
+
+    function getPrevPageIndexLimited(currentPageIndex, pagesCount) {
+      if (pagesCount < 1) throw new Error('pagesCount must be at least 1')
+      return Math.max(Math.min(currentPageIndex - 1, pagesCount - 1), 0)
+    }
+
+    function getPrevPageIndexInfinte(currentPageIndex, pagesCount) {
+      if (pagesCount < 1) throw new Error('pagesCount must be at least 1')
+      const newCurrentPageIndex = Math.min(currentPageIndex, pagesCount - 1) - 1;
+      return newCurrentPageIndex >= 0 ? Math.min(newCurrentPageIndex, pagesCount - 1) : pagesCount - 1
+    }
+
+    function getPrevPageIndexFn(infinite) {
+      return infinite ? getPrevPageIndexInfinte : getPrevPageIndexLimited
+    }
+
+    function getPageIndex(pageIndex, pagesCount) {
+      if (pagesCount < 1) throw new Error('pagesCount must be at least 1')
+      return pageIndex < 0 ? 0 : Math.min(pageIndex, pagesCount - 1)
+    }
+
+    function getAdjacentIndexes(pageIndex, pagesCount, infinite) {
+      if (pagesCount < 1) throw new Error('pagesCount must be at least 1')
+      const _pageIndex = Math.max(0, Math.min(pageIndex, pagesCount - 1));
+      let rangeStart = _pageIndex - 1;
+      let rangeEnd = _pageIndex + 1;
+      rangeStart = rangeStart < 0
+        ? infinite
+          ? pagesCount - 1
+          : 0
+        : rangeStart; 
+      rangeEnd = rangeEnd > pagesCount - 1
+        ? infinite
+            ? 0
+            : pagesCount - 1
+        : rangeEnd;
+      return [...new Set([rangeStart, rangeEnd, _pageIndex])].sort((a, b) => a - b)
+    }
+
+    const initState = {
+      currentPageIndex: 0,
+    };
+
+    function createStore() {
+      const { subscribe, set, update } = writable(initState);
+
+      function init(initialPageIndex) {
+        set({
+          ...initState,
+          currentPageIndex: initialPageIndex
+        });
+      }
+
+      function setCurrentPageIndex(index) {
+        update(store => ({
+          ...store,
+          currentPageIndex: index,
+        }));
+      }
+
+      function moveToPage({ pageIndex, pagesCount }) {
+        update(store => {
+          return {
+            ...store,
+            currentPageIndex: getPageIndex(pageIndex, pagesCount),
+          }
+        });
+      }
+
+      function next({ infinite, pagesCount }) {
+        update(store => {
+          const newCurrentPageIndex = getNextPageIndexFn(infinite)(store.currentPageIndex, pagesCount);
+          return {
+            ...store,
+            currentPageIndex: newCurrentPageIndex,
+          }
+        });
+      }
+
+      function prev({ infinite, pagesCount }) {
+        update(store => {
+          const newCurrentPageIndex = getPrevPageIndexFn(infinite)(store.currentPageIndex, pagesCount);
+          return {
+            ...store,
+            currentPageIndex: newCurrentPageIndex,
+          }
+        });
+      }
+
+      return {
+        subscribe,
+        next,
+        prev,
+        setCurrentPageIndex,
+        init,
+        moveToPage,
+      };
+    }
+
+    /* node_modules\svelte-carousel\src\components\Dot\Dot.svelte generated by Svelte v3.41.0 */
+
+    const file$7 = "node_modules\\svelte-carousel\\src\\components\\Dot\\Dot.svelte";
+
+    function create_fragment$7(ctx) {
+    	let div;
+    	let mounted;
+    	let dispose;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			attr_dev(div, "class", "sc-carousel-dot__dot svelte-1uelw0b");
+    			toggle_class(div, "sc-carousel-dot__dot_active", /*active*/ ctx[0]);
+    			add_location(div, file$7, 7, 0, 99);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+
+    			if (!mounted) {
+    				dispose = listen_dev(div, "click", /*click_handler*/ ctx[1], false, false, false);
+    				mounted = true;
+    			}
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*active*/ 1) {
+    				toggle_class(div, "sc-carousel-dot__dot_active", /*active*/ ctx[0]);
+    			}
+    		},
+    		i: noop,
+    		o: noop,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    			mounted = false;
+    			dispose();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$7.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function instance$7($$self, $$props, $$invalidate) {
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('Dot', slots, []);
+    	let { active = false } = $$props;
+    	const writable_props = ['active'];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Dot> was created with unknown prop '${key}'`);
+    	});
+
+    	function click_handler(event) {
+    		bubble.call(this, $$self, event);
+    	}
+
+    	$$self.$$set = $$props => {
+    		if ('active' in $$props) $$invalidate(0, active = $$props.active);
+    	};
+
+    	$$self.$capture_state = () => ({ active });
+
+    	$$self.$inject_state = $$props => {
+    		if ('active' in $$props) $$invalidate(0, active = $$props.active);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [active, click_handler];
+    }
+
+    class Dot extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$7, create_fragment$7, safe_not_equal, { active: 0 });
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "Dot",
+    			options,
+    			id: create_fragment$7.name
+    		});
+    	}
+
+    	get active() {
+    		throw new Error("<Dot>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set active(value) {
+    		throw new Error("<Dot>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    /* node_modules\svelte-carousel\src\components\Dots\Dots.svelte generated by Svelte v3.41.0 */
+    const file$6 = "node_modules\\svelte-carousel\\src\\components\\Dots\\Dots.svelte";
+
+    function get_each_context$1(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[5] = list[i];
+    	child_ctx[7] = i;
+    	return child_ctx;
+    }
+
+    // (23:2) {#each Array(pagesCount) as _, pageIndex (pageIndex)}
+    function create_each_block$1(key_1, ctx) {
+    	let div;
+    	let dot;
+    	let t;
+    	let current;
+
+    	function click_handler() {
+    		return /*click_handler*/ ctx[3](/*pageIndex*/ ctx[7]);
+    	}
+
+    	dot = new Dot({
+    			props: {
+    				active: /*currentPageIndex*/ ctx[1] === /*pageIndex*/ ctx[7]
+    			},
+    			$$inline: true
+    		});
+
+    	dot.$on("click", click_handler);
+
+    	const block = {
+    		key: key_1,
+    		first: null,
+    		c: function create() {
+    			div = element("div");
+    			create_component(dot.$$.fragment);
+    			t = space();
+    			attr_dev(div, "class", "sc-carousel-dots__dot-container svelte-1oj5bge");
+    			add_location(div, file$6, 23, 4, 515);
+    			this.first = div;
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			mount_component(dot, div, null);
+    			append_dev(div, t);
+    			current = true;
+    		},
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+    			const dot_changes = {};
+    			if (dirty & /*currentPageIndex, pagesCount*/ 3) dot_changes.active = /*currentPageIndex*/ ctx[1] === /*pageIndex*/ ctx[7];
+    			dot.$set(dot_changes);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(dot.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(dot.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    			destroy_component(dot);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block$1.name,
+    		type: "each",
+    		source: "(23:2) {#each Array(pagesCount) as _, pageIndex (pageIndex)}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$6(ctx) {
+    	let div;
+    	let each_blocks = [];
+    	let each_1_lookup = new Map();
+    	let current;
+    	let each_value = Array(/*pagesCount*/ ctx[0]);
+    	validate_each_argument(each_value);
+    	const get_key = ctx => /*pageIndex*/ ctx[7];
+    	validate_each_keys(ctx, each_value, get_each_context$1, get_key);
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		let child_ctx = get_each_context$1(ctx, each_value, i);
+    		let key = get_key(child_ctx);
+    		each_1_lookup.set(key, each_blocks[i] = create_each_block$1(key, child_ctx));
+    	}
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			attr_dev(div, "class", "sc-carousel-dots__container svelte-1oj5bge");
+    			add_location(div, file$6, 21, 0, 411);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(div, null);
+    			}
+
+    			current = true;
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*currentPageIndex, Array, pagesCount, handleDotClick*/ 7) {
+    				each_value = Array(/*pagesCount*/ ctx[0]);
+    				validate_each_argument(each_value);
+    				group_outros();
+    				validate_each_keys(ctx, each_value, get_each_context$1, get_key);
+    				each_blocks = update_keyed_each(each_blocks, dirty, get_key, 1, ctx, each_value, each_1_lookup, div, outro_and_destroy_block, create_each_block$1, null, get_each_context$1);
+    				check_outros();
+    			}
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+
+    			for (let i = 0; i < each_value.length; i += 1) {
+    				transition_in(each_blocks[i]);
+    			}
+
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				transition_out(each_blocks[i]);
+    			}
+
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].d();
+    			}
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$6.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function instance$6($$self, $$props, $$invalidate) {
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('Dots', slots, []);
+    	const dispatch = createEventDispatcher();
+    	let { pagesCount = 1 } = $$props;
+    	let { currentPageIndex = 0 } = $$props;
+
+    	function handleDotClick(pageIndex) {
+    		dispatch('pageChange', pageIndex);
+    	}
+
+    	const writable_props = ['pagesCount', 'currentPageIndex'];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Dots> was created with unknown prop '${key}'`);
+    	});
+
+    	const click_handler = pageIndex => handleDotClick(pageIndex);
+
+    	$$self.$$set = $$props => {
+    		if ('pagesCount' in $$props) $$invalidate(0, pagesCount = $$props.pagesCount);
+    		if ('currentPageIndex' in $$props) $$invalidate(1, currentPageIndex = $$props.currentPageIndex);
+    	};
+
+    	$$self.$capture_state = () => ({
+    		createEventDispatcher,
+    		Dot,
+    		dispatch,
+    		pagesCount,
+    		currentPageIndex,
+    		handleDotClick
+    	});
+
+    	$$self.$inject_state = $$props => {
+    		if ('pagesCount' in $$props) $$invalidate(0, pagesCount = $$props.pagesCount);
+    		if ('currentPageIndex' in $$props) $$invalidate(1, currentPageIndex = $$props.currentPageIndex);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [pagesCount, currentPageIndex, handleDotClick, click_handler];
+    }
+
+    class Dots extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$6, create_fragment$6, safe_not_equal, { pagesCount: 0, currentPageIndex: 1 });
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "Dots",
+    			options,
+    			id: create_fragment$6.name
+    		});
+    	}
+
+    	get pagesCount() {
+    		throw new Error("<Dots>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set pagesCount(value) {
+    		throw new Error("<Dots>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get currentPageIndex() {
+    		throw new Error("<Dots>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set currentPageIndex(value) {
+    		throw new Error("<Dots>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    const PREV = 'prev';
+    const NEXT = 'next';
+
+    /* node_modules\svelte-carousel\src\components\Arrow\Arrow.svelte generated by Svelte v3.41.0 */
+    const file$5 = "node_modules\\svelte-carousel\\src\\components\\Arrow\\Arrow.svelte";
+
+    function create_fragment$5(ctx) {
+    	let div;
+    	let i;
+    	let mounted;
+    	let dispose;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			i = element("i");
+    			attr_dev(i, "class", "sc-carousel-arrow__arrow svelte-9ztt4p");
+    			toggle_class(i, "sc-carousel-arrow__arrow-next", /*direction*/ ctx[0] === NEXT);
+    			toggle_class(i, "sc-carousel-arrow__arrow-prev", /*direction*/ ctx[0] === PREV);
+    			add_location(i, file$5, 19, 2, 371);
+    			attr_dev(div, "class", "sc-carousel-arrow__circle svelte-9ztt4p");
+    			toggle_class(div, "sc-carousel-arrow__circle_disabled", /*disabled*/ ctx[1]);
+    			add_location(div, file$5, 14, 0, 256);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			append_dev(div, i);
+
+    			if (!mounted) {
+    				dispose = listen_dev(div, "click", /*click_handler*/ ctx[2], false, false, false);
+    				mounted = true;
+    			}
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*direction, NEXT*/ 1) {
+    				toggle_class(i, "sc-carousel-arrow__arrow-next", /*direction*/ ctx[0] === NEXT);
+    			}
+
+    			if (dirty & /*direction, PREV*/ 1) {
+    				toggle_class(i, "sc-carousel-arrow__arrow-prev", /*direction*/ ctx[0] === PREV);
+    			}
+
+    			if (dirty & /*disabled*/ 2) {
+    				toggle_class(div, "sc-carousel-arrow__circle_disabled", /*disabled*/ ctx[1]);
+    			}
+    		},
+    		i: noop,
+    		o: noop,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    			mounted = false;
+    			dispose();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$5.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function instance$5($$self, $$props, $$invalidate) {
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('Arrow', slots, []);
+    	let { direction = NEXT } = $$props;
+    	let { disabled = false } = $$props;
+    	const writable_props = ['direction', 'disabled'];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Arrow> was created with unknown prop '${key}'`);
+    	});
+
+    	function click_handler(event) {
+    		bubble.call(this, $$self, event);
+    	}
+
+    	$$self.$$set = $$props => {
+    		if ('direction' in $$props) $$invalidate(0, direction = $$props.direction);
+    		if ('disabled' in $$props) $$invalidate(1, disabled = $$props.disabled);
+    	};
+
+    	$$self.$capture_state = () => ({ NEXT, PREV, direction, disabled });
+
+    	$$self.$inject_state = $$props => {
+    		if ('direction' in $$props) $$invalidate(0, direction = $$props.direction);
+    		if ('disabled' in $$props) $$invalidate(1, disabled = $$props.disabled);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	return [direction, disabled, click_handler];
+    }
+
+    class Arrow extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$5, create_fragment$5, safe_not_equal, { direction: 0, disabled: 1 });
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "Arrow",
+    			options,
+    			id: create_fragment$5.name
+    		});
+    	}
+
+    	get direction() {
+    		throw new Error("<Arrow>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set direction(value) {
+    		throw new Error("<Arrow>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get disabled() {
+    		throw new Error("<Arrow>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set disabled(value) {
+    		throw new Error("<Arrow>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    /* node_modules\svelte-carousel\src\components\Progress\Progress.svelte generated by Svelte v3.41.0 */
+
+    const file$4 = "node_modules\\svelte-carousel\\src\\components\\Progress\\Progress.svelte";
+
+    function create_fragment$4(ctx) {
+    	let div;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			attr_dev(div, "class", "sc-carousel-progress__indicator svelte-nuyenl");
+    			set_style(div, "width", /*width*/ ctx[0] + "%");
+    			add_location(div, file$4, 11, 0, 192);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    		},
+    		p: function update(ctx, [dirty]) {
+    			if (dirty & /*width*/ 1) {
+    				set_style(div, "width", /*width*/ ctx[0] + "%");
+    			}
+    		},
+    		i: noop,
+    		o: noop,
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$4.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    const MAX_PERCENT = 100;
+
+    function instance$4($$self, $$props, $$invalidate) {
+    	let width;
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('Progress', slots, []);
+    	let { value = 0 } = $$props;
+    	const writable_props = ['value'];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Progress> was created with unknown prop '${key}'`);
+    	});
+
+    	$$self.$$set = $$props => {
+    		if ('value' in $$props) $$invalidate(1, value = $$props.value);
+    	};
+
+    	$$self.$capture_state = () => ({ MAX_PERCENT, value, width });
+
+    	$$self.$inject_state = $$props => {
+    		if ('value' in $$props) $$invalidate(1, value = $$props.value);
+    		if ('width' in $$props) $$invalidate(0, width = $$props.width);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty & /*value*/ 2) {
+    			$$invalidate(0, width = Math.min(Math.max(value * MAX_PERCENT, 0), MAX_PERCENT));
+    		}
+    	};
+
+    	return [width, value];
+    }
+
+    class Progress extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+    		init(this, options, instance$4, create_fragment$4, safe_not_equal, { value: 1 });
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "Progress",
+    			options,
+    			id: create_fragment$4.name
+    		});
+    	}
+
+    	get value() {
+    		throw new Error("<Progress>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set value(value) {
+    		throw new Error("<Progress>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
+    // start event
+    function addStartEventListener(source, cb) {
+      source.addEventListener('mousedown', cb);
+      source.addEventListener('touchstart', cb, { passive: true });
+    }
+    function removeStartEventListener(source, cb) {
+      source.removeEventListener('mousedown', cb);
+      source.removeEventListener('touchstart', cb);
+    }
+
+    // end event
+    function addEndEventListener(source, cb) {
+      source.addEventListener('mouseup', cb);
+      source.addEventListener('touchend', cb);
+    }
+    function removeEndEventListener(source, cb) {
+      source.removeEventListener('mouseup', cb);
+      source.removeEventListener('touchend', cb);
+    }
+
+    // move event
+    function addMoveEventListener(source, cb) {
+      source.addEventListener('mousemove', cb);
+      source.addEventListener('touchmove', cb);
+    }
+    function removeMoveEventListener(source, cb) {
+      source.removeEventListener('mousemove', cb);
+      source.removeEventListener('touchmove', cb);
+    }
+
+    // resize event
+    function addResizeEventListener(cb) {
+      window.addEventListener('resize', cb);
+    }
+    function removeResizeEventListener(cb) {
+      window.removeEventListener('resize', cb);
+    }
+
+    function createDispatcher(source) {
+      return function (event, data) {
+        source.dispatchEvent(
+          new CustomEvent(event, {
+            detail: data,
+          })
+        );
+      }
+    }
+
+    const TAP_DURATION_MS = 110;
+    const TAP_MOVEMENT_PX = 9; // max movement during the tap, keep it small
+
+    const SWIPE_MIN_DURATION_MS = 111;
+    const SWIPE_MIN_DISTANCE_PX = 20;
+
+    function getCoords(event) {
+      if ('TouchEvent' in window && event instanceof TouchEvent) {
+        const touch = event.touches[0];
+        return {
+          x: touch ? touch.clientX : 0,
+          y: touch ? touch.clientY : 0,
+        }
+      }
+      return {
+        x: event.clientX,
+        y: event.clientY,
+      }
+    }
+
+    function swipeable(node, { thresholdProvider }) {
+      const dispatch = createDispatcher(node);
+      let x;
+      let y;
+      let moved = 0;
+      let swipeStartedAt;
+      let isTouching = false;
+
+      function isValidSwipe() {
+        const swipeDurationMs = Date.now() - swipeStartedAt;
+        return swipeDurationMs >= SWIPE_MIN_DURATION_MS && Math.abs(moved) >= SWIPE_MIN_DISTANCE_PX
+      }
+
+      function handleDown(event) {
+        swipeStartedAt = Date.now();
+        moved = 0;
+        isTouching = true;
+        const coords = getCoords(event);
+        x = coords.x;
+        y = coords.y;
+        dispatch('swipeStart', { x, y });
+        addMoveEventListener(window, handleMove);
+        addEndEventListener(window, handleUp);
+      }
+
+      function handleMove(event) {
+        if (!isTouching) return
+        const coords = getCoords(event);
+        const dx = coords.x - x;
+        const dy = coords.y - y;
+        x = coords.x;
+        y = coords.y;
+        dispatch('swipeMove', { x, y, dx, dy });
+
+        if (dx !== 0 && Math.sign(dx) !== Math.sign(moved)) {
+          moved = 0;
+        }
+        moved += dx;
+        if (Math.abs(moved) > thresholdProvider()) {
+          dispatch('swipeThresholdReached', { direction: moved > 0 ? PREV : NEXT });
+          removeEndEventListener(window, handleUp);
+          removeMoveEventListener(window, handleMove);
+        }
+      }
+
+      function handleUp(event) {
+        event.preventDefault();
+        removeEndEventListener(window, handleUp);
+        removeMoveEventListener(window, handleMove);
+
+        isTouching = false;
+
+        if (!isValidSwipe()) {
+          dispatch('swipeFailed');
+          return
+        }
+        const coords = getCoords(event);
+        dispatch('swipeEnd', { x: coords.x, y: coords.y });
+      }
+
+      addStartEventListener(node, handleDown);
+      return {
+        destroy() {
+          removeStartEventListener(node, handleDown);
+        },
+      }
+    }
+
+    // in event
+    function addHoverInEventListener(source, cb) {
+      source.addEventListener('mouseenter', cb);
+    }
+    function removeHoverInEventListener(source, cb) {
+      source.removeEventListener('mouseenter', cb);
+    }
+
+    // out event
+    function addHoverOutEventListener(source, cb) {
+      source.addEventListener('mouseleave', cb);
+    }
+    function removeHoverOutEventListener(source, cb) {
+      source.removeEventListener('mouseleave', cb);
+    }
+
+    /**
+     * hoverable events are for mouse events only
+     */
+    function hoverable(node) {
+      const dispatch = createDispatcher(node);
+
+      function handleHoverIn() {
+        addHoverOutEventListener(node, handleHoverOut);
+        dispatch('hovered', { value: true });
+      }
+
+      function handleHoverOut() {
+        dispatch('hovered', { value: false });
+        removeHoverOutEventListener(node, handleHoverOut);
+      }
+
+      addHoverInEventListener(node, handleHoverIn);
+      
+      return {
+        destroy() {
+          removeHoverInEventListener(node, handleHoverIn);
+          removeHoverOutEventListener(node, handleHoverOut);
+        },
+      }
+    }
+
+    const getDistance = (p1, p2) => {
+      const xDist = p2.x - p1.x;
+      const yDist = p2.y - p1.y;
+
+      return Math.sqrt((xDist * xDist) + (yDist * yDist));
+    };
+
+    // tap start event
+    function addFocusinEventListener(source, cb) {
+      source.addEventListener('touchstart', cb, { passive: true });
+    }
+    function removeFocusinEventListener(source, cb) {
+      source.removeEventListener('touchstart', cb);
+    }
+
+    // tap end event
+    function addFocusoutEventListener(source, cb) {
+      source.addEventListener('touchend', cb);
+    }
+    function removeFocusoutEventListener(source, cb) {
+      source.removeEventListener('touchend', cb);
+    }
+
+    /**
+     * tappable events are for touchable devices only
+     */
+    function tappable(node) {
+      const dispatch = createDispatcher(node);
+
+      let tapStartedAt = 0;
+      let tapStartPos = { x: 0, y: 0 };
+
+      function getIsValidTap({
+        tapEndedAt,
+        tapEndedPos
+      }) {
+        const tapTime = tapEndedAt - tapStartedAt;
+        const tapDist = getDistance(tapStartPos, tapEndedPos);
+        return (
+          tapTime <= TAP_DURATION_MS &&
+          tapDist <= TAP_MOVEMENT_PX
+        )
+      }
+
+      function handleTapstart(event) {
+        tapStartedAt = Date.now();
+
+        const touch = event.touches[0];
+        tapStartPos = { x: touch.clientX, y: touch.clientY };
+
+        addFocusoutEventListener(node, handleTapend);
+      }
+
+      function handleTapend(event) {
+        event.preventDefault();
+        removeFocusoutEventListener(node, handleTapend);
+
+        const touch = event.changedTouches[0];
+        if (getIsValidTap({
+          tapEndedAt: Date.now(),
+          tapEndedPos: { x: touch.clientX, y: touch.clientY }
+        })) {
+          dispatch('tapped');
+        }
+      }
+
+      addFocusinEventListener(node, handleTapstart);
+      
+      return {
+        destroy() {
+          removeFocusinEventListener(node, handleTapstart);
+          removeFocusoutEventListener(node, handleTapend);
+        },
+      }
+    }
+
+    const get = (object, fieldName, defaultValue) => {
+      if (object && object.hasOwnProperty(fieldName)) {
+        return object[fieldName]
+      }
+      if (defaultValue === undefined) {
+        throw new Error(`Required arg "${fieldName}" was not provided`)
+      }
+      return defaultValue
+    };
+
+    const setIntervalImmediate = (fn, ms) => {
+      fn();
+      return setInterval(fn, ms);
+    };
+
+    const wait = (ms) => {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve();
+        }, ms);
+      })
+    };
+
+    const STEP_MS = 35;
+    const MAX_VALUE = 1;
+
+    class ProgressManager {
+      #autoplayDuration
+      #onProgressValueChange
+
+      #interval
+      #paused = false
+
+      constructor({
+        autoplayDuration,
+        onProgressValueChange,
+      }) {
+        this.#autoplayDuration = autoplayDuration;
+        this.#onProgressValueChange = onProgressValueChange;
+      }
+
+      start(onFinish) {
+        return new Promise((resolve) => {
+          this.reset();
+
+          const stepMs = Math.min(STEP_MS, this.#autoplayDuration);
+          let progress = -stepMs;
+      
+          this.#interval = setIntervalImmediate(async () => {
+            if (this.#paused) {
+              return
+            }
+            progress += stepMs;
+      
+            const value = progress / this.#autoplayDuration;
+            this.#onProgressValueChange(value);
+      
+            if (value > MAX_VALUE) {
+              this.reset();
+              await onFinish();
+              resolve();
+            }
+          }, stepMs);
+        })
+      }
+
+      pause() {
+        this.#paused = true;
+      }
+
+      resume() {
+        this.#paused = false;
+      }
+
+      reset() {
+        clearInterval(this.#interval);
+        this.#onProgressValueChange(MAX_VALUE);
+      }
+    }
+
+    /* node_modules\svelte-carousel\src\components\Carousel\Carousel.svelte generated by Svelte v3.41.0 */
+
+    const { Error: Error_1 } = globals;
+    const file$3 = "node_modules\\svelte-carousel\\src\\components\\Carousel\\Carousel.svelte";
+
+    const get_dots_slot_changes = dirty => ({
+    	currentPageIndex: dirty[0] & /*originalCurrentPageIndex*/ 64,
+    	pagesCount: dirty[0] & /*originalPagesCount*/ 32,
+    	loaded: dirty[0] & /*loaded*/ 8192
+    });
+
+    const get_dots_slot_context = ctx => ({
+    	currentPageIndex: /*originalCurrentPageIndex*/ ctx[6],
+    	pagesCount: /*originalPagesCount*/ ctx[5],
+    	showPage: /*handlePageChange*/ ctx[14],
+    	loaded: /*loaded*/ ctx[13]
+    });
+
+    const get_next_slot_changes = dirty => ({ loaded: dirty[0] & /*loaded*/ 8192 });
+
+    const get_next_slot_context = ctx => ({
+    	showNextPage: /*showNextPage*/ ctx[16],
+    	loaded: /*loaded*/ ctx[13]
+    });
+
+    const get_default_slot_changes = dirty => ({ loaded: dirty[0] & /*loaded*/ 8192 });
+    const get_default_slot_context = ctx => ({ loaded: /*loaded*/ ctx[13] });
+    const get_prev_slot_changes = dirty => ({ loaded: dirty[0] & /*loaded*/ 8192 });
+
+    const get_prev_slot_context = ctx => ({
+    	showPrevPage: /*showPrevPage*/ ctx[15],
+    	loaded: /*loaded*/ ctx[13]
+    });
+
+    // (324:4) {#if arrows}
+    function create_if_block_3(ctx) {
+    	let current;
+    	const prev_slot_template = /*#slots*/ ctx[38].prev;
+    	const prev_slot = create_slot(prev_slot_template, ctx, /*$$scope*/ ctx[37], get_prev_slot_context);
+    	const prev_slot_or_fallback = prev_slot || fallback_block_2(ctx);
+
+    	const block = {
+    		c: function create() {
+    			if (prev_slot_or_fallback) prev_slot_or_fallback.c();
+    		},
+    		m: function mount(target, anchor) {
+    			if (prev_slot_or_fallback) {
+    				prev_slot_or_fallback.m(target, anchor);
+    			}
+
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			if (prev_slot) {
+    				if (prev_slot.p && (!current || dirty[0] & /*loaded*/ 8192 | dirty[1] & /*$$scope*/ 64)) {
+    					update_slot_base(
+    						prev_slot,
+    						prev_slot_template,
+    						ctx,
+    						/*$$scope*/ ctx[37],
+    						!current
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[37])
+    						: get_slot_changes(prev_slot_template, /*$$scope*/ ctx[37], dirty, get_prev_slot_changes),
+    						get_prev_slot_context
+    					);
+    				}
+    			} else {
+    				if (prev_slot_or_fallback && prev_slot_or_fallback.p && (!current || dirty[0] & /*infinite, originalCurrentPageIndex*/ 68)) {
+    					prev_slot_or_fallback.p(ctx, !current ? [-1, -1] : dirty);
+    				}
+    			}
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(prev_slot_or_fallback, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(prev_slot_or_fallback, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (prev_slot_or_fallback) prev_slot_or_fallback.d(detaching);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_3.name,
+    		type: "if",
+    		source: "(324:4) {#if arrows}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (325:39)           
+    function fallback_block_2(ctx) {
+    	let div;
+    	let arrow;
+    	let current;
+
+    	arrow = new Arrow({
+    			props: {
+    				direction: "prev",
+    				disabled: !/*infinite*/ ctx[2] && /*originalCurrentPageIndex*/ ctx[6] === 0
+    			},
+    			$$inline: true
+    		});
+
+    	arrow.$on("click", /*showPrevPage*/ ctx[15]);
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			create_component(arrow.$$.fragment);
+    			attr_dev(div, "class", "sc-carousel__arrow-container svelte-h7bw08");
+    			add_location(div, file$3, 325, 8, 8729);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			mount_component(arrow, div, null);
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			const arrow_changes = {};
+    			if (dirty[0] & /*infinite, originalCurrentPageIndex*/ 68) arrow_changes.disabled = !/*infinite*/ ctx[2] && /*originalCurrentPageIndex*/ ctx[6] === 0;
+    			arrow.$set(arrow_changes);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(arrow.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(arrow.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    			destroy_component(arrow);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: fallback_block_2.name,
+    		type: "fallback",
+    		source: "(325:39)           ",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (362:6) {#if autoplayProgressVisible}
+    function create_if_block_2(ctx) {
+    	let div;
+    	let progress;
+    	let current;
+
+    	progress = new Progress({
+    			props: { value: /*progressValue*/ ctx[12] },
+    			$$inline: true
+    		});
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			create_component(progress.$$.fragment);
+    			attr_dev(div, "class", "sc-carousel-progress__container svelte-h7bw08");
+    			add_location(div, file$3, 362, 8, 9854);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			mount_component(progress, div, null);
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			const progress_changes = {};
+    			if (dirty[0] & /*progressValue*/ 4096) progress_changes.value = /*progressValue*/ ctx[12];
+    			progress.$set(progress_changes);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(progress.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(progress.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    			destroy_component(progress);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_2.name,
+    		type: "if",
+    		source: "(362:6) {#if autoplayProgressVisible}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (368:4) {#if arrows}
+    function create_if_block_1(ctx) {
+    	let current;
+    	const next_slot_template = /*#slots*/ ctx[38].next;
+    	const next_slot = create_slot(next_slot_template, ctx, /*$$scope*/ ctx[37], get_next_slot_context);
+    	const next_slot_or_fallback = next_slot || fallback_block_1(ctx);
+
+    	const block = {
+    		c: function create() {
+    			if (next_slot_or_fallback) next_slot_or_fallback.c();
+    		},
+    		m: function mount(target, anchor) {
+    			if (next_slot_or_fallback) {
+    				next_slot_or_fallback.m(target, anchor);
+    			}
+
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			if (next_slot) {
+    				if (next_slot.p && (!current || dirty[0] & /*loaded*/ 8192 | dirty[1] & /*$$scope*/ 64)) {
+    					update_slot_base(
+    						next_slot,
+    						next_slot_template,
+    						ctx,
+    						/*$$scope*/ ctx[37],
+    						!current
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[37])
+    						: get_slot_changes(next_slot_template, /*$$scope*/ ctx[37], dirty, get_next_slot_changes),
+    						get_next_slot_context
+    					);
+    				}
+    			} else {
+    				if (next_slot_or_fallback && next_slot_or_fallback.p && (!current || dirty[0] & /*infinite, originalCurrentPageIndex, originalPagesCount*/ 100)) {
+    					next_slot_or_fallback.p(ctx, !current ? [-1, -1] : dirty);
+    				}
+    			}
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(next_slot_or_fallback, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(next_slot_or_fallback, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (next_slot_or_fallback) next_slot_or_fallback.d(detaching);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_1.name,
+    		type: "if",
+    		source: "(368:4) {#if arrows}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (369:39)           
+    function fallback_block_1(ctx) {
+    	let div;
+    	let arrow;
+    	let current;
+
+    	arrow = new Arrow({
+    			props: {
+    				direction: "next",
+    				disabled: !/*infinite*/ ctx[2] && /*originalCurrentPageIndex*/ ctx[6] === /*originalPagesCount*/ ctx[5] - 1
+    			},
+    			$$inline: true
+    		});
+
+    	arrow.$on("click", /*showNextPage*/ ctx[16]);
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			create_component(arrow.$$.fragment);
+    			attr_dev(div, "class", "sc-carousel__arrow-container svelte-h7bw08");
+    			add_location(div, file$3, 369, 8, 10055);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			mount_component(arrow, div, null);
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			const arrow_changes = {};
+    			if (dirty[0] & /*infinite, originalCurrentPageIndex, originalPagesCount*/ 100) arrow_changes.disabled = !/*infinite*/ ctx[2] && /*originalCurrentPageIndex*/ ctx[6] === /*originalPagesCount*/ ctx[5] - 1;
+    			arrow.$set(arrow_changes);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(arrow.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(arrow.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    			destroy_component(arrow);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: fallback_block_1.name,
+    		type: "fallback",
+    		source: "(369:39)           ",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (380:2) {#if dots}
+    function create_if_block$2(ctx) {
+    	let current;
+    	const dots_slot_template = /*#slots*/ ctx[38].dots;
+    	const dots_slot = create_slot(dots_slot_template, ctx, /*$$scope*/ ctx[37], get_dots_slot_context);
+    	const dots_slot_or_fallback = dots_slot || fallback_block(ctx);
+
+    	const block = {
+    		c: function create() {
+    			if (dots_slot_or_fallback) dots_slot_or_fallback.c();
+    		},
+    		m: function mount(target, anchor) {
+    			if (dots_slot_or_fallback) {
+    				dots_slot_or_fallback.m(target, anchor);
+    			}
+
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dots_slot) {
+    				if (dots_slot.p && (!current || dirty[0] & /*originalCurrentPageIndex, originalPagesCount, loaded*/ 8288 | dirty[1] & /*$$scope*/ 64)) {
+    					update_slot_base(
+    						dots_slot,
+    						dots_slot_template,
+    						ctx,
+    						/*$$scope*/ ctx[37],
+    						!current
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[37])
+    						: get_slot_changes(dots_slot_template, /*$$scope*/ ctx[37], dirty, get_dots_slot_changes),
+    						get_dots_slot_context
+    					);
+    				}
+    			} else {
+    				if (dots_slot_or_fallback && dots_slot_or_fallback.p && (!current || dirty[0] & /*originalPagesCount, originalCurrentPageIndex*/ 96)) {
+    					dots_slot_or_fallback.p(ctx, !current ? [-1, -1] : dirty);
+    				}
+    			}
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(dots_slot_or_fallback, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(dots_slot_or_fallback, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (dots_slot_or_fallback) dots_slot_or_fallback.d(detaching);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block$2.name,
+    		type: "if",
+    		source: "(380:2) {#if dots}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (386:5)         
+    function fallback_block(ctx) {
+    	let dots_1;
+    	let current;
+
+    	dots_1 = new Dots({
+    			props: {
+    				pagesCount: /*originalPagesCount*/ ctx[5],
+    				currentPageIndex: /*originalCurrentPageIndex*/ ctx[6]
+    			},
+    			$$inline: true
+    		});
+
+    	dots_1.$on("pageChange", /*pageChange_handler*/ ctx[42]);
+
+    	const block = {
+    		c: function create() {
+    			create_component(dots_1.$$.fragment);
+    		},
+    		m: function mount(target, anchor) {
+    			mount_component(dots_1, target, anchor);
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			const dots_1_changes = {};
+    			if (dirty[0] & /*originalPagesCount*/ 32) dots_1_changes.pagesCount = /*originalPagesCount*/ ctx[5];
+    			if (dirty[0] & /*originalCurrentPageIndex*/ 64) dots_1_changes.currentPageIndex = /*originalCurrentPageIndex*/ ctx[6];
+    			dots_1.$set(dots_1_changes);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(dots_1.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(dots_1.$$.fragment, local);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			destroy_component(dots_1, detaching);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: fallback_block.name,
+    		type: "fallback",
+    		source: "(386:5)         ",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    function create_fragment$3(ctx) {
+    	let div3;
+    	let div2;
+    	let t0;
+    	let div1;
+    	let div0;
+    	let swipeable_action;
+    	let t1;
+    	let t2;
+    	let t3;
+    	let current;
+    	let mounted;
+    	let dispose;
+    	let if_block0 = /*arrows*/ ctx[1] && create_if_block_3(ctx);
+    	const default_slot_template = /*#slots*/ ctx[38].default;
+    	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[37], get_default_slot_context);
+    	let if_block1 = /*autoplayProgressVisible*/ ctx[3] && create_if_block_2(ctx);
+    	let if_block2 = /*arrows*/ ctx[1] && create_if_block_1(ctx);
+    	let if_block3 = /*dots*/ ctx[4] && create_if_block$2(ctx);
+
+    	const block = {
+    		c: function create() {
+    			div3 = element("div");
+    			div2 = element("div");
+    			if (if_block0) if_block0.c();
+    			t0 = space();
+    			div1 = element("div");
+    			div0 = element("div");
+    			if (default_slot) default_slot.c();
+    			t1 = space();
+    			if (if_block1) if_block1.c();
+    			t2 = space();
+    			if (if_block2) if_block2.c();
+    			t3 = space();
+    			if (if_block3) if_block3.c();
+    			attr_dev(div0, "class", "sc-carousel__pages-container svelte-h7bw08");
+    			set_style(div0, "transform", "translateX(" + /*offset*/ ctx[9] + "px)");
+    			set_style(div0, "transition-duration", /*_duration*/ ctx[7] + "ms");
+    			set_style(div0, "transition-timing-function", /*timingFunction*/ ctx[0]);
+    			add_location(div0, file$3, 344, 6, 9194);
+    			attr_dev(div1, "class", "sc-carousel__pages-window svelte-h7bw08");
+    			add_location(div1, file$3, 334, 4, 8986);
+    			attr_dev(div2, "class", "sc-carousel__content-container svelte-h7bw08");
+    			add_location(div2, file$3, 322, 2, 8616);
+    			attr_dev(div3, "class", "sc-carousel__carousel-container svelte-h7bw08");
+    			add_location(div3, file$3, 321, 0, 8567);
+    		},
+    		l: function claim(nodes) {
+    			throw new Error_1("options.hydrate only works if the component was compiled with the `hydratable: true` option");
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div3, anchor);
+    			append_dev(div3, div2);
+    			if (if_block0) if_block0.m(div2, null);
+    			append_dev(div2, t0);
+    			append_dev(div2, div1);
+    			append_dev(div1, div0);
+
+    			if (default_slot) {
+    				default_slot.m(div0, null);
+    			}
+
+    			/*div0_binding*/ ctx[40](div0);
+    			append_dev(div1, t1);
+    			if (if_block1) if_block1.m(div1, null);
+    			/*div1_binding*/ ctx[41](div1);
+    			append_dev(div2, t2);
+    			if (if_block2) if_block2.m(div2, null);
+    			append_dev(div3, t3);
+    			if (if_block3) if_block3.m(div3, null);
+    			current = true;
+
+    			if (!mounted) {
+    				dispose = [
+    					action_destroyer(swipeable_action = swipeable.call(null, div0, {
+    						thresholdProvider: /*swipeable_function*/ ctx[39]
+    					})),
+    					listen_dev(div0, "swipeStart", /*handleSwipeStart*/ ctx[17], false, false, false),
+    					listen_dev(div0, "swipeMove", /*handleSwipeMove*/ ctx[19], false, false, false),
+    					listen_dev(div0, "swipeEnd", /*handleSwipeEnd*/ ctx[20], false, false, false),
+    					listen_dev(div0, "swipeFailed", /*handleSwipeFailed*/ ctx[21], false, false, false),
+    					listen_dev(div0, "swipeThresholdReached", /*handleSwipeThresholdReached*/ ctx[18], false, false, false),
+    					action_destroyer(hoverable.call(null, div1)),
+    					listen_dev(div1, "hovered", /*handleHovered*/ ctx[22], false, false, false),
+    					action_destroyer(tappable.call(null, div1)),
+    					listen_dev(div1, "tapped", /*handleTapped*/ ctx[23], false, false, false)
+    				];
+
+    				mounted = true;
+    			}
+    		},
+    		p: function update(ctx, dirty) {
+    			if (/*arrows*/ ctx[1]) {
+    				if (if_block0) {
+    					if_block0.p(ctx, dirty);
+
+    					if (dirty[0] & /*arrows*/ 2) {
+    						transition_in(if_block0, 1);
+    					}
+    				} else {
+    					if_block0 = create_if_block_3(ctx);
+    					if_block0.c();
+    					transition_in(if_block0, 1);
+    					if_block0.m(div2, t0);
+    				}
+    			} else if (if_block0) {
+    				group_outros();
+
+    				transition_out(if_block0, 1, 1, () => {
+    					if_block0 = null;
+    				});
+
+    				check_outros();
+    			}
+
+    			if (default_slot) {
+    				if (default_slot.p && (!current || dirty[0] & /*loaded*/ 8192 | dirty[1] & /*$$scope*/ 64)) {
+    					update_slot_base(
+    						default_slot,
+    						default_slot_template,
+    						ctx,
+    						/*$$scope*/ ctx[37],
+    						!current
+    						? get_all_dirty_from_scope(/*$$scope*/ ctx[37])
+    						: get_slot_changes(default_slot_template, /*$$scope*/ ctx[37], dirty, get_default_slot_changes),
+    						get_default_slot_context
+    					);
+    				}
+    			}
+
+    			if (!current || dirty[0] & /*offset*/ 512) {
+    				set_style(div0, "transform", "translateX(" + /*offset*/ ctx[9] + "px)");
+    			}
+
+    			if (!current || dirty[0] & /*_duration*/ 128) {
+    				set_style(div0, "transition-duration", /*_duration*/ ctx[7] + "ms");
+    			}
+
+    			if (!current || dirty[0] & /*timingFunction*/ 1) {
+    				set_style(div0, "transition-timing-function", /*timingFunction*/ ctx[0]);
+    			}
+
+    			if (swipeable_action && is_function(swipeable_action.update) && dirty[0] & /*pageWidth*/ 256) swipeable_action.update.call(null, {
+    				thresholdProvider: /*swipeable_function*/ ctx[39]
+    			});
+
+    			if (/*autoplayProgressVisible*/ ctx[3]) {
+    				if (if_block1) {
+    					if_block1.p(ctx, dirty);
+
+    					if (dirty[0] & /*autoplayProgressVisible*/ 8) {
+    						transition_in(if_block1, 1);
+    					}
+    				} else {
+    					if_block1 = create_if_block_2(ctx);
+    					if_block1.c();
+    					transition_in(if_block1, 1);
+    					if_block1.m(div1, null);
+    				}
+    			} else if (if_block1) {
+    				group_outros();
+
+    				transition_out(if_block1, 1, 1, () => {
+    					if_block1 = null;
+    				});
+
+    				check_outros();
+    			}
+
+    			if (/*arrows*/ ctx[1]) {
+    				if (if_block2) {
+    					if_block2.p(ctx, dirty);
+
+    					if (dirty[0] & /*arrows*/ 2) {
+    						transition_in(if_block2, 1);
+    					}
+    				} else {
+    					if_block2 = create_if_block_1(ctx);
+    					if_block2.c();
+    					transition_in(if_block2, 1);
+    					if_block2.m(div2, null);
+    				}
+    			} else if (if_block2) {
+    				group_outros();
+
+    				transition_out(if_block2, 1, 1, () => {
+    					if_block2 = null;
+    				});
+
+    				check_outros();
+    			}
+
+    			if (/*dots*/ ctx[4]) {
+    				if (if_block3) {
+    					if_block3.p(ctx, dirty);
+
+    					if (dirty[0] & /*dots*/ 16) {
+    						transition_in(if_block3, 1);
+    					}
+    				} else {
+    					if_block3 = create_if_block$2(ctx);
+    					if_block3.c();
+    					transition_in(if_block3, 1);
+    					if_block3.m(div3, null);
+    				}
+    			} else if (if_block3) {
+    				group_outros();
+
+    				transition_out(if_block3, 1, 1, () => {
+    					if_block3 = null;
+    				});
+
+    				check_outros();
+    			}
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(if_block0);
+    			transition_in(default_slot, local);
+    			transition_in(if_block1);
+    			transition_in(if_block2);
+    			transition_in(if_block3);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(if_block0);
+    			transition_out(default_slot, local);
+    			transition_out(if_block1);
+    			transition_out(if_block2);
+    			transition_out(if_block3);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div3);
+    			if (if_block0) if_block0.d();
+    			if (default_slot) default_slot.d(detaching);
+    			/*div0_binding*/ ctx[40](null);
+    			if (if_block1) if_block1.d();
+    			/*div1_binding*/ ctx[41](null);
+    			if (if_block2) if_block2.d();
+    			if (if_block3) if_block3.d();
+    			mounted = false;
+    			run_all(dispose);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_fragment$3.name,
+    		type: "component",
+    		source: "",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    const CLONES_COUNT = 2;
+
+    function getOriginalCurrentPageIndex(currentPageIndex, pagesCount, infinite) {
+    	if (infinite) {
+    		if (currentPageIndex === pagesCount - 1) return 0;
+    		if (currentPageIndex === 0) return pagesCount - CLONES_COUNT - 1;
+    		return currentPageIndex - 1;
+    	}
+
+    	return currentPageIndex;
+    }
+
+    function instance$3($$self, $$props, $$invalidate) {
+    	let originalCurrentPageIndex;
+    	let originalPagesCount;
+    	let loaded;
+    	let { $$slots: slots = {}, $$scope } = $$props;
+    	validate_slots('Carousel', slots, ['prev','default','next','dots']);
+    	const dispatch = createEventDispatcher();
+
+    	const autoplayDirectionFnDescription = {
+    		[NEXT]: async () => await progressManager.start(showNextPage),
+    		[PREV]: async () => await progressManager.start(showPrevPage)
+    	};
+
+    	const directionFnDescription = {
+    		[NEXT]: showNextPage,
+    		[PREV]: showPrevPage
+    	};
+
+    	let { timingFunction = 'ease-in-out' } = $$props;
+    	let { arrows = true } = $$props;
+    	let { infinite = true } = $$props;
+    	let { initialPageIndex = 0 } = $$props;
+    	let { duration = 500 } = $$props;
+    	let _duration = duration;
+    	let { autoplay = false } = $$props;
+    	let { autoplayDuration = 3000 } = $$props;
+    	let { autoplayDirection = NEXT } = $$props;
+    	let { pauseOnFocus = false } = $$props;
+    	let { autoplayProgressVisible = false } = $$props;
+    	let { dots = true } = $$props;
+    	let { swiping = true } = $$props;
+
+    	async function goTo(pageIndex, options) {
+    		const animated = get(options, 'animated', true);
+
+    		if (typeof pageIndex !== 'number') {
+    			throw new Error('pageIndex should be a number');
+    		}
+
+    		await showPage(pageIndex + Number(infinite), { animated });
+    	}
+
+    	async function goToPrev(options) {
+    		const animated = get(options, 'animated', true);
+    		await showPrevPage({ animated });
+    	}
+
+    	async function goToNext(options) {
+    		const animated = get(options, 'animated', true);
+    		await showNextPage({ animated });
+    	}
+
+    	let store = createStore();
+    	let currentPageIndex = 0;
+    	let pagesCount = 0;
+    	let pageWidth = 0;
+    	let offset = 0;
+    	let pageWindowElement;
+    	let pagesElement;
+    	let focused = false;
+    	let progressValue;
+
+    	const progressManager = new ProgressManager({
+    			autoplayDuration,
+    			onProgressValueChange: value => {
+    				$$invalidate(12, progressValue = 1 - value);
+    			}
+    		});
+
+    	function applyPageSizes() {
+    		const children = pagesElement.children;
+    		$$invalidate(8, pageWidth = pageWindowElement.clientWidth);
+    		$$invalidate(35, pagesCount = children.length);
+
+    		for (let pageIndex = 0; pageIndex < pagesCount; pageIndex++) {
+    			children[pageIndex].style.minWidth = `${pageWidth}px`;
+    			children[pageIndex].style.maxWidth = `${pageWidth}px`;
+    		}
+
+    		offsetPage({ animated: false });
+    	}
+
+    	function addClones() {
+    		const first = pagesElement.children[0];
+    		const last = pagesElement.children[pagesElement.children.length - 1];
+    		pagesElement.prepend(last.cloneNode(true));
+    		pagesElement.append(first.cloneNode(true));
+    	}
+
+    	async function applyAutoplayIfNeeded(autoplay) {
+    		// prevent progress change if not infinite for first and last page
+    		if (!infinite && (autoplayDirection === NEXT && currentPageIndex === pagesCount - 1 || autoplayDirection === PREV && currentPageIndex === 0)) {
+    			progressManager.reset();
+    			return;
+    		}
+
+    		if (autoplay) {
+    			await autoplayDirectionFnDescription[autoplayDirection]();
+    		}
+    	}
+
+    	let cleanupFns = [];
+
+    	onMount(() => {
+    		(async () => {
+    			await tick();
+
+    			cleanupFns.push(store.subscribe(value => {
+    				$$invalidate(34, currentPageIndex = value.currentPageIndex);
+    			}));
+
+    			cleanupFns.push(() => progressManager.reset());
+
+    			if (pagesElement && pageWindowElement) {
+    				// load first and last child to clone them 
+    				$$invalidate(13, loaded = [0, pagesElement.children.length - 1]);
+
+    				await tick();
+    				infinite && addClones();
+    				store.init(initialPageIndex + Number(infinite));
+    				applyPageSizes();
+    			}
+
+    			addResizeEventListener(applyPageSizes);
+    		})();
+    	});
+
+    	onDestroy(() => {
+    		removeResizeEventListener(applyPageSizes);
+    		cleanupFns.filter(fn => fn && typeof fn === 'function').forEach(fn => fn());
+    	});
+
+    	async function handlePageChange(pageIndex) {
+    		await showPage(pageIndex + Number(infinite));
+    	}
+
+    	function offsetPage(options) {
+    		const animated = get(options, 'animated', true);
+
+    		return new Promise(resolve => {
+    				// _duration is an offset animation time
+    				$$invalidate(7, _duration = animated ? duration : 0);
+
+    				$$invalidate(9, offset = -currentPageIndex * pageWidth);
+
+    				setTimeout(
+    					() => {
+    						resolve();
+    					},
+    					_duration
+    				);
+    			});
+    	}
+
+    	// makes delayed jump to 1st or last element
+    	async function jumpIfNeeded() {
+    		let jumped = false;
+
+    		if (infinite) {
+    			if (currentPageIndex === 0) {
+    				await showPage(pagesCount - CLONES_COUNT, { animated: false });
+    				jumped = true;
+    			} else if (currentPageIndex === pagesCount - 1) {
+    				await showPage(1, { animated: false });
+    				jumped = true;
+    			}
+    		}
+
+    		return jumped;
+    	}
+
+    	// Disable page change while animation is in progress
+    	let disabled = false;
+
+    	async function changePage(updateStoreFn, options) {
+    		progressManager.reset();
+    		if (disabled) return;
+    		disabled = true;
+    		updateStoreFn();
+    		await offsetPage({ animated: get(options, 'animated', true) });
+    		disabled = false;
+    		const jumped = await jumpIfNeeded();
+    		!jumped && applyAutoplayIfNeeded(autoplay); // no need to wait it finishes
+    	}
+
+    	async function showPage(pageIndex, options) {
+    		await changePage(() => store.moveToPage({ pageIndex, pagesCount }), options);
+    	}
+
+    	async function showPrevPage(options) {
+    		await changePage(() => store.prev({ infinite, pagesCount }), options);
+    	}
+
+    	async function showNextPage(options) {
+    		await changePage(() => store.next({ infinite, pagesCount }), options);
+    	}
+
+    	// gestures
+    	function handleSwipeStart() {
+    		if (!swiping) return;
+    		$$invalidate(7, _duration = 0);
+    	}
+
+    	async function handleSwipeThresholdReached(event) {
+    		if (!swiping) return;
+    		await directionFnDescription[event.detail.direction]();
+    	}
+
+    	function handleSwipeMove(event) {
+    		if (!swiping) return;
+    		$$invalidate(9, offset += event.detail.dx);
+    	}
+
+    	function handleSwipeEnd() {
+    		if (!swiping) return;
+    		showPage(currentPageIndex);
+    	}
+
+    	async function handleSwipeFailed() {
+    		if (!swiping) return;
+    		await offsetPage({ animated: true });
+    	}
+
+    	function handleHovered(event) {
+    		$$invalidate(36, focused = event.detail.value);
+    	}
+
+    	function handleTapped(event) {
+    		$$invalidate(36, focused = !focused);
+    	}
+
+    	const writable_props = [
+    		'timingFunction',
+    		'arrows',
+    		'infinite',
+    		'initialPageIndex',
+    		'duration',
+    		'autoplay',
+    		'autoplayDuration',
+    		'autoplayDirection',
+    		'pauseOnFocus',
+    		'autoplayProgressVisible',
+    		'dots',
+    		'swiping'
+    	];
+
+    	Object.keys($$props).forEach(key => {
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Carousel> was created with unknown prop '${key}'`);
+    	});
+
+    	const swipeable_function = () => pageWidth / 3;
+
+    	function div0_binding($$value) {
+    		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
+    			pagesElement = $$value;
+    			$$invalidate(11, pagesElement);
+    		});
+    	}
+
+    	function div1_binding($$value) {
+    		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
+    			pageWindowElement = $$value;
+    			$$invalidate(10, pageWindowElement);
+    		});
+    	}
+
+    	const pageChange_handler = event => handlePageChange(event.detail);
+
+    	$$self.$$set = $$props => {
+    		if ('timingFunction' in $$props) $$invalidate(0, timingFunction = $$props.timingFunction);
+    		if ('arrows' in $$props) $$invalidate(1, arrows = $$props.arrows);
+    		if ('infinite' in $$props) $$invalidate(2, infinite = $$props.infinite);
+    		if ('initialPageIndex' in $$props) $$invalidate(24, initialPageIndex = $$props.initialPageIndex);
+    		if ('duration' in $$props) $$invalidate(25, duration = $$props.duration);
+    		if ('autoplay' in $$props) $$invalidate(26, autoplay = $$props.autoplay);
+    		if ('autoplayDuration' in $$props) $$invalidate(27, autoplayDuration = $$props.autoplayDuration);
+    		if ('autoplayDirection' in $$props) $$invalidate(28, autoplayDirection = $$props.autoplayDirection);
+    		if ('pauseOnFocus' in $$props) $$invalidate(29, pauseOnFocus = $$props.pauseOnFocus);
+    		if ('autoplayProgressVisible' in $$props) $$invalidate(3, autoplayProgressVisible = $$props.autoplayProgressVisible);
+    		if ('dots' in $$props) $$invalidate(4, dots = $$props.dots);
+    		if ('swiping' in $$props) $$invalidate(30, swiping = $$props.swiping);
+    		if ('$$scope' in $$props) $$invalidate(37, $$scope = $$props.$$scope);
+    	};
+
+    	$$self.$capture_state = () => ({
+    		onDestroy,
+    		onMount,
+    		tick,
+    		createEventDispatcher,
+    		createStore,
+    		Dots,
+    		Arrow,
+    		Progress,
+    		NEXT,
+    		PREV,
+    		swipeable,
+    		hoverable,
+    		tappable,
+    		addResizeEventListener,
+    		removeResizeEventListener,
+    		getAdjacentIndexes,
+    		get,
+    		ProgressManager,
+    		wait,
+    		CLONES_COUNT,
+    		dispatch,
+    		autoplayDirectionFnDescription,
+    		directionFnDescription,
+    		timingFunction,
+    		arrows,
+    		infinite,
+    		initialPageIndex,
+    		duration,
+    		_duration,
+    		autoplay,
+    		autoplayDuration,
+    		autoplayDirection,
+    		pauseOnFocus,
+    		autoplayProgressVisible,
+    		dots,
+    		swiping,
+    		goTo,
+    		goToPrev,
+    		goToNext,
+    		store,
+    		currentPageIndex,
+    		pagesCount,
+    		getOriginalCurrentPageIndex,
+    		pageWidth,
+    		offset,
+    		pageWindowElement,
+    		pagesElement,
+    		focused,
+    		progressValue,
+    		progressManager,
+    		applyPageSizes,
+    		addClones,
+    		applyAutoplayIfNeeded,
+    		cleanupFns,
+    		handlePageChange,
+    		offsetPage,
+    		jumpIfNeeded,
+    		disabled,
+    		changePage,
+    		showPage,
+    		showPrevPage,
+    		showNextPage,
+    		handleSwipeStart,
+    		handleSwipeThresholdReached,
+    		handleSwipeMove,
+    		handleSwipeEnd,
+    		handleSwipeFailed,
+    		handleHovered,
+    		handleTapped,
+    		loaded,
+    		originalPagesCount,
+    		originalCurrentPageIndex
+    	});
+
+    	$$self.$inject_state = $$props => {
+    		if ('timingFunction' in $$props) $$invalidate(0, timingFunction = $$props.timingFunction);
+    		if ('arrows' in $$props) $$invalidate(1, arrows = $$props.arrows);
+    		if ('infinite' in $$props) $$invalidate(2, infinite = $$props.infinite);
+    		if ('initialPageIndex' in $$props) $$invalidate(24, initialPageIndex = $$props.initialPageIndex);
+    		if ('duration' in $$props) $$invalidate(25, duration = $$props.duration);
+    		if ('_duration' in $$props) $$invalidate(7, _duration = $$props._duration);
+    		if ('autoplay' in $$props) $$invalidate(26, autoplay = $$props.autoplay);
+    		if ('autoplayDuration' in $$props) $$invalidate(27, autoplayDuration = $$props.autoplayDuration);
+    		if ('autoplayDirection' in $$props) $$invalidate(28, autoplayDirection = $$props.autoplayDirection);
+    		if ('pauseOnFocus' in $$props) $$invalidate(29, pauseOnFocus = $$props.pauseOnFocus);
+    		if ('autoplayProgressVisible' in $$props) $$invalidate(3, autoplayProgressVisible = $$props.autoplayProgressVisible);
+    		if ('dots' in $$props) $$invalidate(4, dots = $$props.dots);
+    		if ('swiping' in $$props) $$invalidate(30, swiping = $$props.swiping);
+    		if ('store' in $$props) store = $$props.store;
+    		if ('currentPageIndex' in $$props) $$invalidate(34, currentPageIndex = $$props.currentPageIndex);
+    		if ('pagesCount' in $$props) $$invalidate(35, pagesCount = $$props.pagesCount);
+    		if ('pageWidth' in $$props) $$invalidate(8, pageWidth = $$props.pageWidth);
+    		if ('offset' in $$props) $$invalidate(9, offset = $$props.offset);
+    		if ('pageWindowElement' in $$props) $$invalidate(10, pageWindowElement = $$props.pageWindowElement);
+    		if ('pagesElement' in $$props) $$invalidate(11, pagesElement = $$props.pagesElement);
+    		if ('focused' in $$props) $$invalidate(36, focused = $$props.focused);
+    		if ('progressValue' in $$props) $$invalidate(12, progressValue = $$props.progressValue);
+    		if ('cleanupFns' in $$props) cleanupFns = $$props.cleanupFns;
+    		if ('disabled' in $$props) disabled = $$props.disabled;
+    		if ('loaded' in $$props) $$invalidate(13, loaded = $$props.loaded);
+    		if ('originalPagesCount' in $$props) $$invalidate(5, originalPagesCount = $$props.originalPagesCount);
+    		if ('originalCurrentPageIndex' in $$props) $$invalidate(6, originalCurrentPageIndex = $$props.originalCurrentPageIndex);
+    	};
+
+    	if ($$props && "$$inject" in $$props) {
+    		$$self.$inject_state($$props.$$inject);
+    	}
+
+    	$$self.$$.update = () => {
+    		if ($$self.$$.dirty[0] & /*autoplay*/ 67108864) {
+    			{
+    				applyAutoplayIfNeeded(autoplay);
+    			}
+    		}
+
+    		if ($$self.$$.dirty[0] & /*infinite*/ 4 | $$self.$$.dirty[1] & /*currentPageIndex, pagesCount*/ 24) {
+    			$$invalidate(6, originalCurrentPageIndex = getOriginalCurrentPageIndex(currentPageIndex, pagesCount, infinite)); // index without cloenes
+    		}
+
+    		if ($$self.$$.dirty[0] & /*originalCurrentPageIndex*/ 64) {
+    			dispatch('pageChange', originalCurrentPageIndex);
+    		}
+
+    		if ($$self.$$.dirty[0] & /*infinite*/ 4 | $$self.$$.dirty[1] & /*pagesCount*/ 16) {
+    			$$invalidate(5, originalPagesCount = Math.max(pagesCount - (infinite ? CLONES_COUNT : 0), 1)); // without clones
+    		}
+
+    		if ($$self.$$.dirty[0] & /*pauseOnFocus*/ 536870912 | $$self.$$.dirty[1] & /*focused*/ 32) {
+    			{
+    				if (pauseOnFocus) {
+    					if (focused) {
+    						progressManager.pause();
+    					} else {
+    						progressManager.resume();
+    					}
+    				}
+    			}
+    		}
+
+    		if ($$self.$$.dirty[0] & /*originalCurrentPageIndex, originalPagesCount, infinite*/ 100) {
+    			// used for lazy loading images, preloaded only current, adjacent and cloanable images
+    			$$invalidate(13, loaded = getAdjacentIndexes(originalCurrentPageIndex, originalPagesCount, infinite));
+    		}
+    	};
+
+    	return [
+    		timingFunction,
+    		arrows,
+    		infinite,
+    		autoplayProgressVisible,
+    		dots,
+    		originalPagesCount,
+    		originalCurrentPageIndex,
+    		_duration,
+    		pageWidth,
+    		offset,
+    		pageWindowElement,
+    		pagesElement,
+    		progressValue,
+    		loaded,
+    		handlePageChange,
+    		showPrevPage,
+    		showNextPage,
+    		handleSwipeStart,
+    		handleSwipeThresholdReached,
+    		handleSwipeMove,
+    		handleSwipeEnd,
+    		handleSwipeFailed,
+    		handleHovered,
+    		handleTapped,
+    		initialPageIndex,
+    		duration,
+    		autoplay,
+    		autoplayDuration,
+    		autoplayDirection,
+    		pauseOnFocus,
+    		swiping,
+    		goTo,
+    		goToPrev,
+    		goToNext,
+    		currentPageIndex,
+    		pagesCount,
+    		focused,
+    		$$scope,
+    		slots,
+    		swipeable_function,
+    		div0_binding,
+    		div1_binding,
+    		pageChange_handler
+    	];
+    }
+
+    class Carousel extends SvelteComponentDev {
+    	constructor(options) {
+    		super(options);
+
+    		init(
+    			this,
+    			options,
+    			instance$3,
+    			create_fragment$3,
+    			safe_not_equal,
+    			{
+    				timingFunction: 0,
+    				arrows: 1,
+    				infinite: 2,
+    				initialPageIndex: 24,
+    				duration: 25,
+    				autoplay: 26,
+    				autoplayDuration: 27,
+    				autoplayDirection: 28,
+    				pauseOnFocus: 29,
+    				autoplayProgressVisible: 3,
+    				dots: 4,
+    				swiping: 30,
+    				goTo: 31,
+    				goToPrev: 32,
+    				goToNext: 33
+    			},
+    			null,
+    			[-1, -1]
+    		);
+
+    		dispatch_dev("SvelteRegisterComponent", {
+    			component: this,
+    			tagName: "Carousel",
+    			options,
+    			id: create_fragment$3.name
+    		});
+    	}
+
+    	get timingFunction() {
+    		throw new Error_1("<Carousel>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set timingFunction(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get arrows() {
+    		throw new Error_1("<Carousel>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set arrows(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get infinite() {
+    		throw new Error_1("<Carousel>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set infinite(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get initialPageIndex() {
+    		throw new Error_1("<Carousel>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set initialPageIndex(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get duration() {
+    		throw new Error_1("<Carousel>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set duration(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get autoplay() {
+    		throw new Error_1("<Carousel>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set autoplay(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get autoplayDuration() {
+    		throw new Error_1("<Carousel>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set autoplayDuration(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get autoplayDirection() {
+    		throw new Error_1("<Carousel>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set autoplayDirection(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get pauseOnFocus() {
+    		throw new Error_1("<Carousel>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set pauseOnFocus(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get autoplayProgressVisible() {
+    		throw new Error_1("<Carousel>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set autoplayProgressVisible(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get dots() {
+    		throw new Error_1("<Carousel>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set dots(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get swiping() {
+    		throw new Error_1("<Carousel>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	set swiping(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get goTo() {
+    		return this.$$.ctx[31];
+    	}
+
+    	set goTo(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get goToPrev() {
+    		return this.$$.ctx[32];
+    	}
+
+    	set goToPrev(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+
+    	get goToNext() {
+    		return this.$$.ctx[33];
+    	}
+
+    	set goToNext(value) {
+    		throw new Error_1("<Carousel>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    	}
+    }
+
     /* src\InfoPanel.svelte generated by Svelte v3.41.0 */
     const file$2 = "src\\InfoPanel.svelte";
 
@@ -15175,7 +17688,13 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (82:4) {:else}
+    function get_each_context_1(ctx, list, i) {
+    	const child_ctx = ctx.slice();
+    	child_ctx[3] = list[i];
+    	return child_ctx;
+    }
+
+    // (95:4) {:else}
     function create_else_block$1(ctx) {
     	let div0;
     	let span0;
@@ -15215,23 +17734,23 @@ var app = (function () {
     			span2.textContent = "NYC Green Relief & Recovery Fund.";
     			t9 = text(".");
     			attr_dev(span0, "id", "pane-title");
-    			add_location(span0, file$2, 84, 12, 3148);
+    			add_location(span0, file$2, 97, 12, 3766);
     			attr_dev(div0, "class", "info-title");
-    			add_location(div0, file$2, 83, 8, 3110);
-    			add_location(br0, file$2, 89, 12, 3587);
-    			add_location(br1, file$2, 89, 16, 3591);
+    			add_location(div0, file$2, 96, 8, 3728);
+    			add_location(br0, file$2, 102, 12, 4205);
+    			add_location(br1, file$2, 102, 16, 4209);
     			attr_dev(a, "href", "https://commons.pratt.edu/savi/");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$2, 89, 78, 3653);
+    			add_location(a, file$2, 102, 78, 4271);
     			set_style(span1, "color", "var(--parkColor)");
     			set_style(span1, "font-weight", "bold");
-    			add_location(span1, file$2, 89, 277, 3852);
+    			add_location(span1, file$2, 102, 277, 4470);
     			set_style(span2, "color", "var(--parkColor)");
     			set_style(span2, "font-weight", "bold");
-    			add_location(span2, file$2, 89, 368, 3943);
-    			add_location(p, file$2, 88, 12, 3261);
+    			add_location(span2, file$2, 102, 368, 4561);
+    			add_location(p, file$2, 101, 12, 3879);
     			attr_dev(div1, "class", "info-container");
-    			add_location(div1, file$2, 87, 8, 3219);
+    			add_location(div1, file$2, 100, 8, 3837);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
@@ -15251,6 +17770,8 @@ var app = (function () {
     			append_dev(p, t9);
     		},
     		p: noop,
+    		i: noop,
+    		o: noop,
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div0);
     			if (detaching) detach_dev(t1);
@@ -15262,14 +17783,14 @@ var app = (function () {
     		block,
     		id: create_else_block$1.name,
     		type: "else",
-    		source: "(82:4) {:else}",
+    		source: "(95:4) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (58:4) {#if active_data}
+    // (59:4) {#if active_data}
     function create_if_block$1(ctx) {
     	let div0;
     	let span0;
@@ -15277,6 +17798,7 @@ var app = (function () {
     	let t0;
     	let t1;
     	let div1;
+    	let carousel;
     	let t2;
     	let div2;
     	let p0;
@@ -15293,6 +17815,38 @@ var app = (function () {
     	let span3;
     	let t7_value = /*active_data*/ ctx[0][0].properties['Text-Copy'] + "";
     	let t7;
+    	let t8;
+    	let br;
+    	let t9;
+    	let p3;
+    	let span4;
+    	let t11;
+    	let current;
+
+    	carousel = new Carousel({
+    			props: {
+    				$$slots: {
+    					next: [
+    						create_next_slot,
+    						({ showPrevPage, showNextPage }) => ({ 6: showPrevPage, 7: showNextPage }),
+    						({ showPrevPage, showNextPage }) => (showPrevPage ? 64 : 0) | (showNextPage ? 128 : 0)
+    					],
+    					prev: [
+    						create_prev_slot,
+    						({ showPrevPage, showNextPage }) => ({ 6: showPrevPage, 7: showNextPage }),
+    						({ showPrevPage, showNextPage }) => (showPrevPage ? 64 : 0) | (showNextPage ? 128 : 0)
+    					],
+    					default: [
+    						create_default_slot$1,
+    						({ showPrevPage, showNextPage }) => ({ 6: showPrevPage, 7: showNextPage }),
+    						({ showPrevPage, showNextPage }) => (showPrevPage ? 64 : 0) | (showNextPage ? 128 : 0)
+    					]
+    				},
+    				$$scope: { ctx }
+    			},
+    			$$inline: true
+    		});
+
     	let each_value = /*active_photos*/ ctx[1];
     	validate_each_argument(each_value);
     	let each_blocks = [];
@@ -15308,11 +17862,7 @@ var app = (function () {
     			t0 = text(t0_value);
     			t1 = space();
     			div1 = element("div");
-
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].c();
-    			}
-
+    			create_component(carousel.$$.fragment);
     			t2 = space();
     			div2 = element("div");
     			p0 = element("p");
@@ -15326,23 +17876,39 @@ var app = (function () {
     			p2 = element("p");
     			span3 = element("span");
     			t7 = text(t7_value);
+    			t8 = space();
+    			br = element("br");
+    			t9 = space();
+    			p3 = element("p");
+    			span4 = element("span");
+    			span4.textContent = "Photo Credits:";
+    			t11 = space();
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
     			attr_dev(span0, "id", "pane-title");
-    			add_location(span0, file$2, 60, 12, 2315);
+    			add_location(span0, file$2, 61, 12, 2359);
     			attr_dev(div0, "class", "info-title");
-    			add_location(div0, file$2, 59, 8, 2277);
+    			add_location(div0, file$2, 60, 8, 2321);
     			attr_dev(div1, "class", "photo-container");
-    			add_location(div1, file$2, 63, 8, 2421);
+    			add_location(div1, file$2, 64, 8, 2465);
     			attr_dev(span1, "id", "info-title");
-    			add_location(span1, file$2, 75, 15, 2805);
-    			add_location(p0, file$2, 75, 12, 2802);
+    			add_location(span1, file$2, 81, 15, 3175);
+    			add_location(p0, file$2, 81, 12, 3172);
     			attr_dev(span2, "id", "info-title");
-    			add_location(span2, file$2, 76, 15, 2897);
-    			add_location(p1, file$2, 76, 12, 2894);
+    			add_location(span2, file$2, 82, 15, 3267);
+    			add_location(p1, file$2, 82, 12, 3264);
     			attr_dev(span3, "id", "info-title");
-    			add_location(span3, file$2, 77, 15, 2991);
-    			add_location(p2, file$2, 77, 12, 2988);
+    			add_location(span3, file$2, 83, 15, 3361);
+    			add_location(p2, file$2, 83, 12, 3358);
+    			add_location(br, file$2, 84, 12, 3449);
+    			attr_dev(span4, "class", "photo-credit");
+    			add_location(span4, file$2, 85, 15, 3470);
+    			add_location(p3, file$2, 85, 12, 3467);
     			attr_dev(div2, "class", "info-container");
-    			add_location(div2, file$2, 73, 8, 2758);
+    			add_location(div2, file$2, 79, 8, 3128);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
@@ -15350,11 +17916,7 @@ var app = (function () {
     			append_dev(span0, t0);
     			insert_dev(target, t1, anchor);
     			insert_dev(target, div1, anchor);
-
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(div1, null);
-    			}
-
+    			mount_component(carousel, div1, null);
     			insert_dev(target, t2, anchor);
     			insert_dev(target, div2, anchor);
     			append_dev(div2, p0);
@@ -15368,9 +17930,31 @@ var app = (function () {
     			append_dev(div2, p2);
     			append_dev(p2, span3);
     			append_dev(span3, t7);
+    			append_dev(div2, t8);
+    			append_dev(div2, br);
+    			append_dev(div2, t9);
+    			append_dev(div2, p3);
+    			append_dev(p3, span4);
+    			append_dev(div2, t11);
+
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(div2, null);
+    			}
+
+    			current = true;
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*active_data*/ 1 && t0_value !== (t0_value = /*active_data*/ ctx[0][0].properties['Text-Name'] + "")) set_data_dev(t0, t0_value);
+    			if ((!current || dirty & /*active_data*/ 1) && t0_value !== (t0_value = /*active_data*/ ctx[0][0].properties['Text-Name'] + "")) set_data_dev(t0, t0_value);
+    			const carousel_changes = {};
+
+    			if (dirty & /*$$scope, showNextPage, showPrevPage, active_photos*/ 1218) {
+    				carousel_changes.$$scope = { dirty, ctx };
+    			}
+
+    			carousel.$set(carousel_changes);
+    			if ((!current || dirty & /*active_data*/ 1) && t3_value !== (t3_value = /*active_data*/ ctx[0][0].properties['Text-Acres'] + "")) set_data_dev(t3, t3_value);
+    			if ((!current || dirty & /*active_data*/ 1) && t5_value !== (t5_value = /*active_data*/ ctx[0][0].properties['Text-Address'] + "")) set_data_dev(t5, t5_value);
+    			if ((!current || dirty & /*active_data*/ 1) && t7_value !== (t7_value = /*active_data*/ ctx[0][0].properties['Text-Copy'] + "")) set_data_dev(t7, t7_value);
 
     			if (dirty & /*active_photos*/ 2) {
     				each_value = /*active_photos*/ ctx[1];
@@ -15385,7 +17969,7 @@ var app = (function () {
     					} else {
     						each_blocks[i] = create_each_block(child_ctx);
     						each_blocks[i].c();
-    						each_blocks[i].m(div1, null);
+    						each_blocks[i].m(div2, null);
     					}
     				}
 
@@ -15395,18 +17979,24 @@ var app = (function () {
 
     				each_blocks.length = each_value.length;
     			}
-
-    			if (dirty & /*active_data*/ 1 && t3_value !== (t3_value = /*active_data*/ ctx[0][0].properties['Text-Acres'] + "")) set_data_dev(t3, t3_value);
-    			if (dirty & /*active_data*/ 1 && t5_value !== (t5_value = /*active_data*/ ctx[0][0].properties['Text-Address'] + "")) set_data_dev(t5, t5_value);
-    			if (dirty & /*active_data*/ 1 && t7_value !== (t7_value = /*active_data*/ ctx[0][0].properties['Text-Copy'] + "")) set_data_dev(t7, t7_value);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(carousel.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(carousel.$$.fragment, local);
+    			current = false;
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div0);
     			if (detaching) detach_dev(t1);
     			if (detaching) detach_dev(div1);
-    			destroy_each(each_blocks, detaching);
+    			destroy_component(carousel);
     			if (detaching) detach_dev(t2);
     			if (detaching) detach_dev(div2);
+    			destroy_each(each_blocks, detaching);
     		}
     	};
 
@@ -15414,35 +18004,27 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(58:4) {#if active_data}",
+    		source: "(59:4) {#if active_data}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (66:12) {#each active_photos as photo }
-    function create_each_block(ctx) {
-    	let div;
+    // (72:24) {#each active_photos as photo }
+    function create_each_block_1(ctx) {
     	let img;
     	let img_src_value;
-    	let t;
 
     	const block = {
     		c: function create() {
-    			div = element("div");
     			img = element("img");
-    			t = space();
     			attr_dev(img, "alt", "test");
     			if (!src_url_equal(img.src, img_src_value = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/" + /*photo*/ ctx[3].site + "/" + /*photo*/ ctx[3].photo + ".jpg")) attr_dev(img, "src", img_src_value);
-    			add_location(img, file$2, 67, 20, 2561);
-    			attr_dev(div, "class", "photo-loc");
-    			add_location(div, file$2, 66, 16, 2515);
+    			add_location(img, file$2, 72, 24, 2804);
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
-    			append_dev(div, img);
-    			append_dev(div, t);
+    			insert_dev(target, img, anchor);
     		},
     		p: function update(ctx, dirty) {
     			if (dirty & /*active_photos*/ 2 && !src_url_equal(img.src, img_src_value = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/" + /*photo*/ ctx[3].site + "/" + /*photo*/ ctx[3].photo + ".jpg")) {
@@ -15450,7 +18032,228 @@ var app = (function () {
     			}
     		},
     		d: function destroy(detaching) {
+    			if (detaching) detach_dev(img);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_each_block_1.name,
+    		type: "each",
+    		source: "(72:24) {#each active_photos as photo }",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (67:12) <Carousel                  let:showPrevPage                  let:showNextPage                  >
+    function create_default_slot$1(ctx) {
+    	let each_1_anchor;
+    	let each_value_1 = /*active_photos*/ ctx[1];
+    	validate_each_argument(each_value_1);
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value_1.length; i += 1) {
+    		each_blocks[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
+    	}
+
+    	const block = {
+    		c: function create() {
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			each_1_anchor = empty();
+    		},
+    		m: function mount(target, anchor) {
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(target, anchor);
+    			}
+
+    			insert_dev(target, each_1_anchor, anchor);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*active_photos*/ 2) {
+    				each_value_1 = /*active_photos*/ ctx[1];
+    				validate_each_argument(each_value_1);
+    				let i;
+
+    				for (i = 0; i < each_value_1.length; i += 1) {
+    					const child_ctx = get_each_context_1(ctx, each_value_1, i);
+
+    					if (each_blocks[i]) {
+    						each_blocks[i].p(child_ctx, dirty);
+    					} else {
+    						each_blocks[i] = create_each_block_1(child_ctx);
+    						each_blocks[i].c();
+    						each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
+    					}
+    				}
+
+    				for (; i < each_blocks.length; i += 1) {
+    					each_blocks[i].d(1);
+    				}
+
+    				each_blocks.length = each_value_1.length;
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			destroy_each(each_blocks, detaching);
+    			if (detaching) detach_dev(each_1_anchor);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_default_slot$1.name,
+    		type: "slot",
+    		source: "(67:12) <Carousel                  let:showPrevPage                  let:showNextPage                  >",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (71:20) 
+    function create_prev_slot(ctx) {
+    	let div;
+    	let i;
+    	let mounted;
+    	let dispose;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			i = element("i");
+    			add_location(i, file$2, 70, 100, 2708);
+    			attr_dev(div, "slot", "prev");
+    			attr_dev(div, "class", "custom-arrow custom-arrow-prev");
+    			add_location(div, file$2, 70, 20, 2628);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			append_dev(div, i);
+
+    			if (!mounted) {
+    				dispose = listen_dev(
+    					div,
+    					"click",
+    					function () {
+    						if (is_function(/*showPrevPage*/ ctx[6])) /*showPrevPage*/ ctx[6].apply(this, arguments);
+    					},
+    					false,
+    					false,
+    					false
+    				);
+
+    				mounted = true;
+    			}
+    		},
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+    		},
+    		d: function destroy(detaching) {
     			if (detaching) detach_dev(div);
+    			mounted = false;
+    			dispose();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_prev_slot.name,
+    		type: "slot",
+    		source: "(71:20) ",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (75:20) 
+    function create_next_slot(ctx) {
+    	let div;
+    	let i;
+    	let mounted;
+    	let dispose;
+
+    	const block = {
+    		c: function create() {
+    			div = element("div");
+    			i = element("i");
+    			add_location(i, file$2, 74, 100, 3058);
+    			attr_dev(div, "slot", "next");
+    			attr_dev(div, "class", "custom-arrow custom-arrow-next");
+    			add_location(div, file$2, 74, 20, 2978);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, div, anchor);
+    			append_dev(div, i);
+
+    			if (!mounted) {
+    				dispose = listen_dev(
+    					div,
+    					"click",
+    					function () {
+    						if (is_function(/*showNextPage*/ ctx[7])) /*showNextPage*/ ctx[7].apply(this, arguments);
+    					},
+    					false,
+    					false,
+    					false
+    				);
+
+    				mounted = true;
+    			}
+    		},
+    		p: function update(new_ctx, dirty) {
+    			ctx = new_ctx;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(div);
+    			mounted = false;
+    			dispose();
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_next_slot.name,
+    		type: "slot",
+    		source: "(75:20) ",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (87:12) {#each active_photos as photo }
+    function create_each_block(ctx) {
+    	let span;
+    	let t_value = /*photo*/ ctx[3].credit + "";
+    	let t;
+    	let br;
+
+    	const block = {
+    		c: function create() {
+    			span = element("span");
+    			t = text(t_value);
+    			br = element("br");
+    			attr_dev(span, "class", "photo-credit");
+    			add_location(span, file$2, 88, 16, 3608);
+    			add_location(br, file$2, 88, 64, 3656);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, span, anchor);
+    			append_dev(span, t);
+    			insert_dev(target, br, anchor);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*active_photos*/ 2 && t_value !== (t_value = /*photo*/ ctx[3].credit + "")) set_data_dev(t, t_value);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(span);
+    			if (detaching) detach_dev(br);
     		}
     	};
 
@@ -15458,7 +18261,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(66:12) {#each active_photos as photo }",
+    		source: "(87:12) {#each active_photos as photo }",
     		ctx
     	});
 
@@ -15467,47 +18270,74 @@ var app = (function () {
 
     function create_fragment$2(ctx) {
     	let div;
+    	let current_block_type_index;
+    	let if_block;
+    	let current;
+    	const if_block_creators = [create_if_block$1, create_else_block$1];
+    	const if_blocks = [];
 
     	function select_block_type(ctx, dirty) {
-    		if (/*active_data*/ ctx[0]) return create_if_block$1;
-    		return create_else_block$1;
+    		if (/*active_data*/ ctx[0]) return 0;
+    		return 1;
     	}
 
-    	let current_block_type = select_block_type(ctx);
-    	let if_block = current_block_type(ctx);
+    	current_block_type_index = select_block_type(ctx);
+    	if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
 
     	const block = {
     		c: function create() {
     			div = element("div");
     			if_block.c();
     			attr_dev(div, "class", "right-content");
-    			add_location(div, file$2, 55, 0, 2213);
+    			add_location(div, file$2, 56, 0, 2257);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
-    			if_block.m(div, null);
+    			if_blocks[current_block_type_index].m(div, null);
+    			current = true;
     		},
     		p: function update(ctx, [dirty]) {
-    			if (current_block_type === (current_block_type = select_block_type(ctx)) && if_block) {
-    				if_block.p(ctx, dirty);
-    			} else {
-    				if_block.d(1);
-    				if_block = current_block_type(ctx);
+    			let previous_block_index = current_block_type_index;
+    			current_block_type_index = select_block_type(ctx);
 
-    				if (if_block) {
+    			if (current_block_type_index === previous_block_index) {
+    				if_blocks[current_block_type_index].p(ctx, dirty);
+    			} else {
+    				group_outros();
+
+    				transition_out(if_blocks[previous_block_index], 1, 1, () => {
+    					if_blocks[previous_block_index] = null;
+    				});
+
+    				check_outros();
+    				if_block = if_blocks[current_block_type_index];
+
+    				if (!if_block) {
+    					if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
     					if_block.c();
-    					if_block.m(div, null);
+    				} else {
+    					if_block.p(ctx, dirty);
     				}
+
+    				transition_in(if_block, 1);
+    				if_block.m(div, null);
     			}
     		},
-    		i: noop,
-    		o: noop,
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(if_block);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(if_block);
+    			current = false;
+    		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div);
-    			if_block.d();
+    			if_blocks[current_block_type_index].d();
     		}
     	};
 
@@ -15666,6 +18496,7 @@ var app = (function () {
 
     	$$self.$capture_state = () => ({
     		afterUpdate,
+    		Carousel,
     		active_data,
     		photos,
     		active_photos
@@ -15874,8 +18705,6 @@ var app = (function () {
     }
 
     /* src\App.svelte generated by Svelte v3.41.0 */
-
-    const { console: console_1 } = globals;
     const file = "src\\App.svelte";
 
     // (69:0) {:else}
@@ -15891,9 +18720,9 @@ var app = (function () {
     			t0 = text("Loading.... ");
     			br = element("br");
     			t1 = text("\n\t\tPlease Wait...");
-    			add_location(br, file, 70, 14, 1741);
+    			add_location(br, file, 70, 14, 1743);
     			attr_dev(div, "class", "wait svelte-6p5msl");
-    			add_location(div, file, 69, 1, 1708);
+    			add_location(div, file, 69, 1, 1710);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -15952,11 +18781,11 @@ var app = (function () {
     			div1 = element("div");
     			create_component(infopanel.$$.fragment);
     			attr_dev(div0, "class", "left-panel");
-    			add_location(div0, file, 55, 2, 1433);
+    			add_location(div0, file, 55, 2, 1435);
     			attr_dev(div1, "class", "right-panel");
-    			add_location(div1, file, 63, 2, 1625);
+    			add_location(div1, file, 63, 2, 1627);
     			attr_dev(div2, "class", "two-column");
-    			add_location(div2, file, 54, 1, 1406);
+    			add_location(div2, file, 54, 1, 1408);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div2, anchor);
@@ -16114,7 +18943,7 @@ var app = (function () {
     			if_block_anchor = empty();
     			attr_dev(link, "rel", "stylesheet");
     			attr_dev(link, "href", "https://use.typekit.net/kjc8ltt.css");
-    			add_location(link, file, 50, 1, 1292);
+    			add_location(link, file, 50, 1, 1294);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -16197,8 +19026,7 @@ var app = (function () {
     		const res2 = await fetch(url_border);
     		let border_lots = await res2.json();
     		$$invalidate(1, data.border = border_lots.features, data);
-    		console.log(data);
-    	});
+    	}); //console.log(data);
 
     	//Handle Clicked Geojson Object, Point or Polygon. Returns active Polygon Object
     	function handleMessage(e) {
@@ -16220,7 +19048,7 @@ var app = (function () {
     	const writable_props = [];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1.warn(`<App> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<App> was created with unknown prop '${key}'`);
     	});
 
     	$$self.$capture_state = () => ({

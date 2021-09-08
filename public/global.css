@@ -84,6 +84,13 @@ p {
     margin-bottom: 15px
 }
 
+.photo-credit {
+    font-size: 8pt;
+    font-style: italic;
+    color: #555;
+    font-weight: 400;
+}
+
 .photo-container {
     display: flex;
     flex-direction: column;

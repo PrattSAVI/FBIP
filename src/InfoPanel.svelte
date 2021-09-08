@@ -1,6 +1,7 @@
 
 <script>
     import {afterUpdate} from "svelte";
+    import Carousel from 'svelte-carousel'
     export let active_data;
 
     //List of all photos and BBLS
@@ -63,11 +64,16 @@
         
         <div class="photo-container">
 
-            {#each active_photos as photo }
-                <div class="photo-loc"> 
-                    <img alt="test" src= "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/{photo.site}/{photo.photo}.jpg" /> 
-                </div>
-            {/each}
+            <Carousel
+                let:showPrevPage
+                let:showNextPage
+                >
+                    <div slot="prev" on:click={showPrevPage} class="custom-arrow custom-arrow-prev"><i /></div>
+                        {#each active_photos as photo }  
+                        <img alt="test" src= "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/{photo.site}/{photo.photo}.jpg" />  
+                    {/each}
+                    <div slot="next" on:click={showNextPage} class="custom-arrow custom-arrow-next"><i /></div>
+                </Carousel>
 
         </div>
 
@@ -76,6 +82,13 @@
             <p><span id='info-title' >{active_data[0].properties['Text-Acres']}</span></p>
             <p><span id='info-title' >{active_data[0].properties['Text-Address']}</span></p>
             <p><span id='info-title' >{active_data[0].properties['Text-Copy']}</span></p>
+            <br>
+            <p><span class='photo-credit'>Photo Credits:</span></p> 
+            {#each active_photos as photo } 
+                   
+                <span class='photo-credit'>{photo.credit}</span><br>
+
+            {/each}
 
         </div>
 
