@@ -114,6 +114,8 @@ p {
         flex-direction: row;
         order: 3!important;
         margin-left: 10px;
+        margin-right: 100px;
+        margin-left: 100px;
     }
     .two-column {
         flex-direction: column;

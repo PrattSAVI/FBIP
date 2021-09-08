@@ -2,6 +2,7 @@
 <script>
     import * as L from 'leaflet';
     import { count } from "./store.js";
+    import {afterUpdate} from "svelte";
 
     export let geojson;
 
@@ -40,15 +41,48 @@
     
     // Assign a seperate ID for park and outside elements. 
     layer.eachLayer(function (polygon) {
-            polygon._path.id = "Border"
-            //console.log(polygon);
+            polygon._path.id = "Border"            
         });
 
     layer.eachLayer(function (polygon) {
         polygon._path.id = "BorderBehind"
-        //console.log(polygon);
+        
     });
 
+    //Add Label to the whole park
+    // Add Point
+    var newMarker = new L.circle( L.latLng(40.723,-73.961) ,{
+        stroke:false,
+        opacity:0,
+        fillOpacity:0
+    } ).addTo(map);
+
+    //Add label
+    newMarker.bindTooltip( "Bushwick Inlet Park",{
+        permanent:true,
+        direction: 'center',
+    }).openTooltip();
+
+
+    var zoomLevel = map.getZoom();
+    console.log(zoomLevel);
+        
+    if ( zoomLevel === 17 ){
+        console.log("amam");
+
+        console.log( document.querySelectorAll('.leaflet-tooltip' ) );
+        //Hide the label for now. -- This is not working yet!!!
+        [].forEach.call(document.querySelectorAll('.leaflet-tooltip' ), function (el) {
+            if( el.innerHTML !== "Bushwick Inlet Park" ){
+                el.style.visibility = 'hidden';
+            };
+        });
+    }
+
+
+	
+    
+    
 </script>
 
 

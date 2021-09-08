@@ -109,14 +109,25 @@
         var zoomLevel = map.getZoom();
         if (zoomLevel < 17 ){
             [].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
-                el.style.visibility = 'hidden';
+                if( el.innerHTML !== "Bushwick Inlet Park" ){
+                    el.style.visibility = 'hidden';
+                }else{
+                    el.style.visibility = 'visible';
+                }
             });
+        
         }else{
             [].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
-                el.style.visibility = 'visible';
+                if( el.innerHTML !== "Bushwick Inlet Park" ){
+                    el.style.visibility = 'visible';
+                }else{
+                    el.style.visibility = 'hidden';
+                }
             });
         }
     });
+
+
 
 
 </script>
