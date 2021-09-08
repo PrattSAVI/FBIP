@@ -15169,21 +15169,23 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (77:4) {:else}
+    // (82:4) {:else}
     function create_else_block$1(ctx) {
     	let div0;
     	let span0;
     	let t1;
     	let div1;
-    	let p0;
+    	let p;
+    	let t2;
+    	let br0;
+    	let br1;
     	let t3;
-    	let br;
-    	let t4;
-    	let p1;
+    	let a;
     	let t5;
     	let span1;
     	let t7;
     	let span2;
+    	let t9;
 
     	const block = {
     		c: function create() {
@@ -15192,48 +15194,55 @@ var app = (function () {
     			span0.textContent = "About the Map";
     			t1 = space();
     			div1 = element("div");
-    			p0 = element("p");
-    			p0.textContent = "Lorem ipsum, dolor sit amet consectetur adipisicing elit. Harum reiciendis, distinctio placeat inventore deleniti tenetur cupiditate mollitia, nemo asperiores beatae facilis ducimus aliquam libero saepe nesciunt excepturi rem pariatur cum?";
-    			t3 = space();
-    			br = element("br");
-    			t4 = space();
-    			p1 = element("p");
-    			t5 = text("Support for this project has been provided by the ");
+    			p = element("p");
+    			t2 = text("Bushwick Inlet Park is a mosaic public park project. Its multiple sections are in various phases of development. This map aims to help simplify this picture. Click or tap on a section within the park’s borders or adjacent spaces to see images, brief histories and the current development status of each space.\r\n            ");
+    			br0 = element("br");
+    			br1 = element("br");
+    			t3 = text("This project is a collaboration between Pratt Institute’s ");
+    			a = element("a");
+    			a.textContent = "Spatial Analysis & Visualization Initiative (SAVI)";
+    			t5 = text(" and Friends of Bushwick Inlet Park. Support for this project has been provided by the ");
     			span1 = element("span");
     			span1.textContent = "City Parks Foundation";
     			t7 = text(" and the ");
     			span2 = element("span");
     			span2.textContent = "NYC Green Relief & Recovery Fund.";
+    			t9 = text(".");
     			attr_dev(span0, "id", "pane-title");
-    			add_location(span0, file$2, 79, 12, 2281);
+    			add_location(span0, file$2, 84, 12, 3148);
     			attr_dev(div0, "class", "info-title");
-    			add_location(div0, file$2, 78, 8, 2243);
-    			add_location(p0, file$2, 84, 12, 2408);
-    			add_location(br, file$2, 85, 12, 2668);
+    			add_location(div0, file$2, 83, 8, 3110);
+    			add_location(br0, file$2, 89, 12, 3587);
+    			add_location(br1, file$2, 89, 16, 3591);
+    			attr_dev(a, "href", "https://commons.pratt.edu/savi/");
+    			attr_dev(a, "target", "_blank");
+    			add_location(a, file$2, 89, 78, 3653);
     			set_style(span1, "color", "var(--parkColor)");
     			set_style(span1, "font-weight", "bold");
-    			add_location(span1, file$2, 86, 65, 2739);
+    			add_location(span1, file$2, 89, 277, 3852);
     			set_style(span2, "color", "var(--parkColor)");
     			set_style(span2, "font-weight", "bold");
-    			add_location(span2, file$2, 86, 156, 2830);
-    			add_location(p1, file$2, 86, 12, 2686);
+    			add_location(span2, file$2, 89, 368, 3943);
+    			add_location(p, file$2, 88, 12, 3261);
     			attr_dev(div1, "class", "info-container");
-    			add_location(div1, file$2, 82, 8, 2352);
+    			add_location(div1, file$2, 87, 8, 3219);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
     			append_dev(div0, span0);
     			insert_dev(target, t1, anchor);
     			insert_dev(target, div1, anchor);
-    			append_dev(div1, p0);
-    			append_dev(div1, t3);
-    			append_dev(div1, br);
-    			append_dev(div1, t4);
-    			append_dev(div1, p1);
-    			append_dev(p1, t5);
-    			append_dev(p1, span1);
-    			append_dev(p1, t7);
-    			append_dev(p1, span2);
+    			append_dev(div1, p);
+    			append_dev(p, t2);
+    			append_dev(p, br0);
+    			append_dev(p, br1);
+    			append_dev(p, t3);
+    			append_dev(p, a);
+    			append_dev(p, t5);
+    			append_dev(p, span1);
+    			append_dev(p, t7);
+    			append_dev(p, span2);
+    			append_dev(p, t9);
     		},
     		p: noop,
     		d: function destroy(detaching) {
@@ -15247,14 +15256,14 @@ var app = (function () {
     		block,
     		id: create_else_block$1.name,
     		type: "else",
-    		source: "(77:4) {:else}",
+    		source: "(82:4) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (53:4) {#if active_data}
+    // (58:4) {#if active_data}
     function create_if_block$1(ctx) {
     	let div0;
     	let span0;
@@ -15312,22 +15321,22 @@ var app = (function () {
     			span3 = element("span");
     			t7 = text(t7_value);
     			attr_dev(span0, "id", "pane-title");
-    			add_location(span0, file$2, 55, 12, 1448);
+    			add_location(span0, file$2, 60, 12, 2315);
     			attr_dev(div0, "class", "info-title");
-    			add_location(div0, file$2, 54, 8, 1410);
+    			add_location(div0, file$2, 59, 8, 2277);
     			attr_dev(div1, "class", "photo-container");
-    			add_location(div1, file$2, 58, 8, 1554);
+    			add_location(div1, file$2, 63, 8, 2421);
     			attr_dev(span1, "id", "info-title");
-    			add_location(span1, file$2, 70, 15, 1938);
-    			add_location(p0, file$2, 70, 12, 1935);
+    			add_location(span1, file$2, 75, 15, 2805);
+    			add_location(p0, file$2, 75, 12, 2802);
     			attr_dev(span2, "id", "info-title");
-    			add_location(span2, file$2, 71, 15, 2030);
-    			add_location(p1, file$2, 71, 12, 2027);
+    			add_location(span2, file$2, 76, 15, 2897);
+    			add_location(p1, file$2, 76, 12, 2894);
     			attr_dev(span3, "id", "info-title");
-    			add_location(span3, file$2, 72, 15, 2124);
-    			add_location(p2, file$2, 72, 12, 2121);
+    			add_location(span3, file$2, 77, 15, 2991);
+    			add_location(p2, file$2, 77, 12, 2988);
     			attr_dev(div2, "class", "info-container");
-    			add_location(div2, file$2, 68, 8, 1891);
+    			add_location(div2, file$2, 73, 8, 2758);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
@@ -15399,14 +15408,14 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(53:4) {#if active_data}",
+    		source: "(58:4) {#if active_data}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (61:12) {#each active_photos as photo }
+    // (66:12) {#each active_photos as photo }
     function create_each_block(ctx) {
     	let div;
     	let img;
@@ -15420,9 +15429,9 @@ var app = (function () {
     			t = space();
     			attr_dev(img, "alt", "test");
     			if (!src_url_equal(img.src, img_src_value = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/" + /*photo*/ ctx[3].site + "/" + /*photo*/ ctx[3].photo + ".jpg")) attr_dev(img, "src", img_src_value);
-    			add_location(img, file$2, 62, 20, 1694);
+    			add_location(img, file$2, 67, 20, 2561);
     			attr_dev(div, "class", "photo-loc");
-    			add_location(div, file$2, 61, 16, 1648);
+    			add_location(div, file$2, 66, 16, 2515);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -15443,7 +15452,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(61:12) {#each active_photos as photo }",
+    		source: "(66:12) {#each active_photos as photo }",
     		ctx
     	});
 
@@ -15466,7 +15475,7 @@ var app = (function () {
     			div = element("div");
     			if_block.c();
     			attr_dev(div, "class", "right-content");
-    			add_location(div, file$2, 50, 0, 1346);
+    			add_location(div, file$2, 55, 0, 2213);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -15514,25 +15523,116 @@ var app = (function () {
 
     	//List of all photos and BBLS
     	let photos = [
-    		{ site: "3022770000", photo: "1" },
-    		{ site: "3022770000", photo: "2" },
-    		{ site: "3022770000", photo: "3" },
-    		{ site: "3022770000", photo: "4" },
-    		{ site: "3022870000", photo: "1" },
-    		{ site: "3022870000", photo: "2" },
-    		{ site: "3022940001", photo: "1" },
-    		{ site: "3022940001", photo: "2" },
-    		{ site: "3023010060", photo: "1" },
-    		{ site: "3023010060", photo: "2" },
-    		{ site: "3023160001", photo: "1" },
-    		{ site: "3023160001", photo: "2" },
-    		{ site: "3023160001", photo: "3" },
-    		{ site: "3025900025", photo: "1" },
-    		{ site: "3025900025", photo: "2" },
-    		{ site: "3025900025", photo: "3" },
-    		{ site: "3025900025", photo: "4" },
-    		{ site: "3025900100", photo: "1" },
-    		{ site: "3025900100", photo: "2" }
+    		{
+    			site: "3022770000",
+    			photo: "1",
+    			credit: "Friends of Bushwick Inlet Park"
+    		},
+    		{
+    			site: "3022770000",
+    			photo: "2",
+    			credit: "Friends of Bushwick Inlet Park"
+    		},
+    		{
+    			site: "3022770000",
+    			photo: "3",
+    			credit: "Danny Lyon"
+    		},
+    		{
+    			site: "3022870000",
+    			photo: "1",
+    			credit: "NYC Dept of Parks & Recreation"
+    		},
+    		{
+    			site: "3022870000",
+    			photo: "2",
+    			credit: "NYC Dept of Parks & Recreation"
+    		},
+    		{
+    			site: "3022940001",
+    			photo: "1",
+    			credit: "Friends of Bushwick Inlet Park"
+    		},
+    		{
+    			site: "3022940001",
+    			photo: "2",
+    			credit: "Friends of Bushwick Inlet Park"
+    		},
+    		{
+    			site: "3023010060",
+    			photo: "1",
+    			credit: "Friends of Bushwick Inlet Park"
+    		},
+    		{
+    			site: "3023010060",
+    			photo: "2",
+    			credit: "Friends of Bushwick Inlet Park"
+    		},
+    		{
+    			site: "3023010060",
+    			photo: "3",
+    			credit: "Friends of Bushwick Inlet Park"
+    		},
+    		{
+    			site: "3023160001",
+    			photo: "1",
+    			credit: "Friends of Bushwick Inlet Park"
+    		},
+    		{
+    			site: "3023160001",
+    			photo: "2",
+    			credit: "NYS Dept of Parks, Recreation & Historic Preservation"
+    		},
+    		{
+    			site: "3023160001",
+    			photo: "3",
+    			credit: "Collection of Philip M. Goldstein"
+    		},
+    		{
+    			site: "3025900025",
+    			photo: "1",
+    			credit: "Greenpoint Monitor Museum"
+    		},
+    		{
+    			site: "3025900025",
+    			photo: "2",
+    			credit: "Greenpoint Monitor Museum"
+    		},
+    		{
+    			site: "3025900025",
+    			photo: "3",
+    			credit: "Greenpoint Monitor Museum"
+    		},
+    		{
+    			site: "3025900100",
+    			photo: "1",
+    			credit: "Motiva"
+    		},
+    		{
+    			site: "3025900100",
+    			photo: "2",
+    			credit: "Motiva"
+    		},
+    		{
+    			site: "3025900100",
+    			photo: "3",
+    			credit: "Motiva"
+    		},
+    		{
+    			site: "3025900001",
+    			photo: "1",
+    			credit: "Google Maps"
+    		},
+    		{
+    			site: "3025900001",
+    			photo: "2",
+    			credit: "Google Maps"
+    		},
+    		{
+    			site: "3025900001",
+    			photo: "3",
+    			credit: "FEMA"
+    		}
     	];
 
     	let active_photos = [];
@@ -15662,9 +15762,9 @@ var app = (function () {
     			div7 = element("div");
     			t9 = space();
     			div8 = element("div");
-    			t10 = text("Owned and managed by");
+    			t10 = text("Other adjacent waterfront");
     			br1 = element("br");
-    			t11 = text(" New York State");
+    			t11 = text(" open space");
     			attr_dev(div0, "class", "title svelte-1e8mbbq");
     			add_location(div0, file$1, 2, 4, 28);
     			attr_dev(hr, "class", "svelte-1e8mbbq");
@@ -15685,7 +15785,7 @@ var app = (function () {
     			attr_dev(div7, "class", "rect svelte-1e8mbbq");
     			set_style(div7, "background", "var(--stateColor)");
     			add_location(div7, file$1, 15, 8, 468);
-    			add_location(br1, file$1, 16, 53, 584);
+    			add_location(br1, file$1, 16, 58, 589);
     			attr_dev(div8, "class", "legend-text svelte-1e8mbbq");
     			add_location(div8, file$1, 16, 8, 539);
     			attr_dev(div9, "class", "legend-item svelte-1e8mbbq");
