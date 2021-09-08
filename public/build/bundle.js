@@ -16481,7 +16481,7 @@ var app = (function () {
     }
 
     // (362:6) {#if autoplayProgressVisible}
-    function create_if_block_2(ctx) {
+    function create_if_block_2$1(ctx) {
     	let div;
     	let progress;
     	let current;
@@ -16525,7 +16525,7 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_if_block_2.name,
+    		id: create_if_block_2$1.name,
     		type: "if",
     		source: "(362:6) {#if autoplayProgressVisible}",
     		ctx
@@ -16789,7 +16789,7 @@ var app = (function () {
     	let if_block0 = /*arrows*/ ctx[1] && create_if_block_3(ctx);
     	const default_slot_template = /*#slots*/ ctx[38].default;
     	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[37], get_default_slot_context);
-    	let if_block1 = /*autoplayProgressVisible*/ ctx[3] && create_if_block_2(ctx);
+    	let if_block1 = /*autoplayProgressVisible*/ ctx[3] && create_if_block_2$1(ctx);
     	let if_block2 = /*arrows*/ ctx[1] && create_if_block_1$1(ctx);
     	let if_block3 = /*dots*/ ctx[4] && create_if_block$2(ctx);
 
@@ -16927,7 +16927,7 @@ var app = (function () {
     						transition_in(if_block1, 1);
     					}
     				} else {
-    					if_block1 = create_if_block_2(ctx);
+    					if_block1 = create_if_block_2$1(ctx);
     					if_block1.c();
     					transition_in(if_block1, 1);
     					if_block1.m(div1, null);
@@ -17694,7 +17694,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (99:4) {:else}
+    // (106:4) {:else}
     function create_else_block_1(ctx) {
     	let div0;
     	let span0;
@@ -17734,23 +17734,23 @@ var app = (function () {
     			span2.textContent = "NYC Green Relief & Recovery Fund.";
     			t9 = text(".");
     			attr_dev(span0, "id", "pane-title");
-    			add_location(span0, file$2, 101, 12, 3954);
+    			add_location(span0, file$2, 108, 12, 4242);
     			attr_dev(div0, "class", "info-title");
-    			add_location(div0, file$2, 100, 8, 3916);
-    			add_location(br0, file$2, 106, 12, 4393);
-    			add_location(br1, file$2, 106, 16, 4397);
+    			add_location(div0, file$2, 107, 8, 4204);
+    			add_location(br0, file$2, 113, 12, 4681);
+    			add_location(br1, file$2, 113, 16, 4685);
     			attr_dev(a, "href", "https://commons.pratt.edu/savi/");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$2, 106, 78, 4459);
+    			add_location(a, file$2, 113, 78, 4747);
     			set_style(span1, "color", "var(--parkColor)");
     			set_style(span1, "font-weight", "bold");
-    			add_location(span1, file$2, 106, 277, 4658);
+    			add_location(span1, file$2, 113, 277, 4946);
     			set_style(span2, "color", "var(--parkColor)");
     			set_style(span2, "font-weight", "bold");
-    			add_location(span2, file$2, 106, 368, 4749);
-    			add_location(p, file$2, 105, 12, 4067);
+    			add_location(span2, file$2, 113, 368, 5037);
+    			add_location(p, file$2, 112, 12, 4355);
     			attr_dev(div1, "class", "info-container");
-    			add_location(div1, file$2, 104, 8, 4025);
+    			add_location(div1, file$2, 111, 8, 4313);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
@@ -17783,7 +17783,7 @@ var app = (function () {
     		block,
     		id: create_else_block_1.name,
     		type: "else",
-    		source: "(99:4) {:else}",
+    		source: "(106:4) {:else}",
     		ctx
     	});
 
@@ -17812,11 +17812,14 @@ var app = (function () {
     	let t5;
     	let t6;
     	let t7;
-    	let br;
+    	let br0;
     	let t8;
+    	let t9;
+    	let br1;
+    	let t10;
     	let p2;
     	let span3;
-    	let t10;
+    	let t12;
     	let current;
 
     	carousel = new Carousel({
@@ -17844,12 +17847,13 @@ var app = (function () {
     		});
 
     	function select_block_type_1(ctx, dirty) {
-    		if (/*active_data*/ ctx[0][0].properties['Text-Copy']) return create_if_block_1;
+    		if (/*active_data*/ ctx[0][0].properties['Text-Copy']) return create_if_block_2;
     		return create_else_block$1;
     	}
 
     	let current_block_type = select_block_type_1(ctx);
-    	let if_block = current_block_type(ctx);
+    	let if_block0 = current_block_type(ctx);
+    	let if_block1 = /*active_data*/ ctx[0][0].properties['Text_Web'] && create_if_block_1(ctx);
     	let each_value = /*active_photos*/ ctx[1];
     	validate_each_argument(each_value);
     	let each_blocks = [];
@@ -17876,14 +17880,18 @@ var app = (function () {
     			span2 = element("span");
     			t5 = text(t5_value);
     			t6 = space();
-    			if_block.c();
+    			if_block0.c();
     			t7 = space();
-    			br = element("br");
+    			br0 = element("br");
     			t8 = space();
+    			if (if_block1) if_block1.c();
+    			t9 = space();
+    			br1 = element("br");
+    			t10 = space();
     			p2 = element("p");
     			span3 = element("span");
     			span3.textContent = "Photo Credits:";
-    			t10 = space();
+    			t12 = space();
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
@@ -17901,10 +17909,11 @@ var app = (function () {
     			attr_dev(span2, "id", "info-title");
     			add_location(span2, file$2, 80, 15, 3121);
     			add_location(p1, file$2, 80, 12, 3118);
-    			add_location(br, file$2, 90, 12, 3658);
+    			add_location(br0, file$2, 90, 12, 3658);
+    			add_location(br1, file$2, 95, 12, 3942);
     			attr_dev(span3, "class", "photo-credit");
-    			add_location(span3, file$2, 91, 15, 3679);
-    			add_location(p2, file$2, 91, 12, 3676);
+    			add_location(span3, file$2, 96, 15, 3963);
+    			add_location(p2, file$2, 96, 12, 3960);
     			attr_dev(div2, "class", "info-container");
     			add_location(div2, file$2, 77, 8, 2982);
     		},
@@ -17925,13 +17934,17 @@ var app = (function () {
     			append_dev(p1, span2);
     			append_dev(span2, t5);
     			append_dev(div2, t6);
-    			if_block.m(div2, null);
+    			if_block0.m(div2, null);
     			append_dev(div2, t7);
-    			append_dev(div2, br);
+    			append_dev(div2, br0);
     			append_dev(div2, t8);
+    			if (if_block1) if_block1.m(div2, null);
+    			append_dev(div2, t9);
+    			append_dev(div2, br1);
+    			append_dev(div2, t10);
     			append_dev(div2, p2);
     			append_dev(p2, span3);
-    			append_dev(div2, t10);
+    			append_dev(div2, t12);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].m(div2, null);
@@ -17951,16 +17964,29 @@ var app = (function () {
     			if ((!current || dirty & /*active_data*/ 1) && t3_value !== (t3_value = /*active_data*/ ctx[0][0].properties['Text-Acres'] + "")) set_data_dev(t3, t3_value);
     			if ((!current || dirty & /*active_data*/ 1) && t5_value !== (t5_value = /*active_data*/ ctx[0][0].properties['Text-Address'] + "")) set_data_dev(t5, t5_value);
 
-    			if (current_block_type === (current_block_type = select_block_type_1(ctx)) && if_block) {
-    				if_block.p(ctx, dirty);
+    			if (current_block_type === (current_block_type = select_block_type_1(ctx)) && if_block0) {
+    				if_block0.p(ctx, dirty);
     			} else {
-    				if_block.d(1);
-    				if_block = current_block_type(ctx);
+    				if_block0.d(1);
+    				if_block0 = current_block_type(ctx);
 
-    				if (if_block) {
-    					if_block.c();
-    					if_block.m(div2, t7);
+    				if (if_block0) {
+    					if_block0.c();
+    					if_block0.m(div2, t7);
     				}
+    			}
+
+    			if (/*active_data*/ ctx[0][0].properties['Text_Web']) {
+    				if (if_block1) {
+    					if_block1.p(ctx, dirty);
+    				} else {
+    					if_block1 = create_if_block_1(ctx);
+    					if_block1.c();
+    					if_block1.m(div2, t9);
+    				}
+    			} else if (if_block1) {
+    				if_block1.d(1);
+    				if_block1 = null;
     			}
 
     			if (dirty & /*active_photos*/ 2) {
@@ -18003,7 +18029,8 @@ var app = (function () {
     			destroy_component(carousel);
     			if (detaching) detach_dev(t2);
     			if (detaching) detach_dev(div2);
-    			if_block.d();
+    			if_block0.d();
+    			if (if_block1) if_block1.d();
     			destroy_each(each_blocks, detaching);
     		}
     	};
@@ -18308,7 +18335,7 @@ var app = (function () {
     }
 
     // (84:12) {#if active_data[0].properties['Text-Copy']}
-    function create_if_block_1(ctx) {
+    function create_if_block_2(ctx) {
     	let p;
     	let span;
     	let t_value = /*active_data*/ ctx[0][0].properties['Text-Copy'] + "";
@@ -18338,7 +18365,7 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_if_block_1.name,
+    		id: create_if_block_2.name,
     		type: "if",
     		source: "(84:12) {#if active_data[0].properties['Text-Copy']}",
     		ctx
@@ -18347,7 +18374,63 @@ var app = (function () {
     	return block;
     }
 
-    // (93:12) {#each active_photos as photo }
+    // (92:12) {#if active_data[0].properties['Text_Web']}
+    function create_if_block_1(ctx) {
+    	let p;
+    	let strong;
+    	let span;
+    	let a;
+    	let t1_value = /*active_data*/ ctx[0][0].properties['Text_Web'] + "";
+    	let t1;
+    	let a_href_value;
+
+    	const block = {
+    		c: function create() {
+    			p = element("p");
+    			strong = element("strong");
+    			strong.textContent = "Website: ";
+    			span = element("span");
+    			a = element("a");
+    			t1 = text(t1_value);
+    			add_location(strong, file$2, 92, 19, 3740);
+    			attr_dev(a, "href", a_href_value = /*active_data*/ ctx[0][0].properties['Text_Web']);
+    			attr_dev(a, "target", "_blank");
+    			add_location(a, file$2, 92, 68, 3789);
+    			attr_dev(span, "id", "info-title");
+    			add_location(span, file$2, 92, 45, 3766);
+    			add_location(p, file$2, 92, 16, 3737);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, p, anchor);
+    			append_dev(p, strong);
+    			append_dev(p, span);
+    			append_dev(span, a);
+    			append_dev(a, t1);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*active_data*/ 1 && t1_value !== (t1_value = /*active_data*/ ctx[0][0].properties['Text_Web'] + "")) set_data_dev(t1, t1_value);
+
+    			if (dirty & /*active_data*/ 1 && a_href_value !== (a_href_value = /*active_data*/ ctx[0][0].properties['Text_Web'])) {
+    				attr_dev(a, "href", a_href_value);
+    			}
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(p);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_1.name,
+    		type: "if",
+    		source: "(92:12) {#if active_data[0].properties['Text_Web']}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (98:12) {#each active_photos as photo }
     function create_each_block(ctx) {
     	let span;
     	let t_value = /*photo*/ ctx[3].credit + "";
@@ -18360,8 +18443,8 @@ var app = (function () {
     			t = text(t_value);
     			br = element("br");
     			attr_dev(span, "class", "photo-credit");
-    			add_location(span, file$2, 93, 16, 3798);
-    			add_location(br, file$2, 93, 64, 3846);
+    			add_location(span, file$2, 98, 16, 4082);
+    			add_location(br, file$2, 98, 64, 4130);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, span, anchor);
@@ -18381,7 +18464,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(93:12) {#each active_photos as photo }",
+    		source: "(98:12) {#each active_photos as photo }",
     		ctx
     	});
 

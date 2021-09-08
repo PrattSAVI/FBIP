@@ -89,10 +89,17 @@
             {/if}
 
             <br>
+            {#if active_data[0].properties['Text_Web']}
+                <p><strong>Website: </strong><span id='info-title' ><a href={active_data[0].properties['Text_Web']} target="_blank">{active_data[0].properties['Text_Web']}</a></span></p>
+            {/if}
+
+            <br>
             <p><span class='photo-credit'>Photo Credits:</span></p> 
             {#each active_photos as photo }   
                 <span class='photo-credit'>{photo.credit}</span><br>
             {/each}
+
+
 
         </div>
 
