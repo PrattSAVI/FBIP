@@ -14,7 +14,7 @@
 
     <div class="legend-item" >
         <div class="rect" style="background:var(--stateColor)"></div>
-        <div class="legend-text">Other adjacent waterfront<br> open space</div>
+        <div class="legend-text">Other adjacent waterfront<br>Open Space</div>
     </div>
 
 </div>

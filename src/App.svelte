@@ -26,7 +26,7 @@
 		let border_lots = await res2.json();
 		data.border = border_lots.features;
 
-		//console.log(data);
+		console.log(data);
 	});
 
 	//Handle Clicked Geojson Object, Point or Polygon. Returns active Polygon Object
