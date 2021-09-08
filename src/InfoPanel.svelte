@@ -43,8 +43,6 @@
         //Filter photos to active data
 		if (active_data){
             active_photos = photos.filter(function(photo){
-                //console.log( "BBL: " + active_data[0].properties.BBL )
-                //console.log( "Site: " + photo.site )
                 return photo.site === active_data[0].properties.BBL
             })
         }
@@ -68,12 +66,12 @@
                 let:showPrevPage
                 let:showNextPage
                 >
-                    <div slot="prev" on:click={showPrevPage} class="custom-arrow custom-arrow-prev"><i /></div>
-                        {#each active_photos as photo }  
+                <div slot="prev" on:click={showPrevPage} class="custom-arrow custom-arrow-prev"><i /></div>
+                    {#each active_photos as photo }  
                         <img alt="test" src= "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/{photo.site}/{photo.photo}.jpg" />  
                     {/each}
-                    <div slot="next" on:click={showNextPage} class="custom-arrow custom-arrow-next"><i /></div>
-                </Carousel>
+                <div slot="next" on:click={showNextPage} class="custom-arrow custom-arrow-next"><i /></div>
+            </Carousel>
 
         </div>
 
@@ -81,13 +79,19 @@
 
             <p><span id='info-title' >{active_data[0].properties['Text-Acres']}</span></p>
             <p><span id='info-title' >{active_data[0].properties['Text-Address']}</span></p>
-            <p><span id='info-title' >{active_data[0].properties['Text-Copy']}</span></p>
+
+
+            {#if active_data[0].properties['Text-Copy']}
+                <p><span id='info-title' >{active_data[0].properties['Text-Copy']}</span></p>
+            {:else}
+                <p><strong>Status: </strong><span id='info-title' >{active_data[0].properties['Text_Status']}</span></p>
+                <p><strong>History: </strong> <span id='info-title' >{active_data[0].properties['Text_History']}</span></p>
+            {/if}
+
             <br>
             <p><span class='photo-credit'>Photo Credits:</span></p> 
-            {#each active_photos as photo } 
-                   
+            {#each active_photos as photo }   
                 <span class='photo-credit'>{photo.credit}</span><br>
-
             {/each}
 
         </div>

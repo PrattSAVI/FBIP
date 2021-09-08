@@ -16535,7 +16535,7 @@ var app = (function () {
     }
 
     // (368:4) {#if arrows}
-    function create_if_block_1(ctx) {
+    function create_if_block_1$1(ctx) {
     	let current;
     	const next_slot_template = /*#slots*/ ctx[38].next;
     	const next_slot = create_slot(next_slot_template, ctx, /*$$scope*/ ctx[37], get_next_slot_context);
@@ -16588,7 +16588,7 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_if_block_1.name,
+    		id: create_if_block_1$1.name,
     		type: "if",
     		source: "(368:4) {#if arrows}",
     		ctx
@@ -16790,7 +16790,7 @@ var app = (function () {
     	const default_slot_template = /*#slots*/ ctx[38].default;
     	const default_slot = create_slot(default_slot_template, ctx, /*$$scope*/ ctx[37], get_default_slot_context);
     	let if_block1 = /*autoplayProgressVisible*/ ctx[3] && create_if_block_2(ctx);
-    	let if_block2 = /*arrows*/ ctx[1] && create_if_block_1(ctx);
+    	let if_block2 = /*arrows*/ ctx[1] && create_if_block_1$1(ctx);
     	let if_block3 = /*dots*/ ctx[4] && create_if_block$2(ctx);
 
     	const block = {
@@ -16950,7 +16950,7 @@ var app = (function () {
     						transition_in(if_block2, 1);
     					}
     				} else {
-    					if_block2 = create_if_block_1(ctx);
+    					if_block2 = create_if_block_1$1(ctx);
     					if_block2.c();
     					transition_in(if_block2, 1);
     					if_block2.m(div2, null);
@@ -17694,8 +17694,8 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (95:4) {:else}
-    function create_else_block$1(ctx) {
+    // (99:4) {:else}
+    function create_else_block_1(ctx) {
     	let div0;
     	let span0;
     	let t1;
@@ -17734,23 +17734,23 @@ var app = (function () {
     			span2.textContent = "NYC Green Relief & Recovery Fund.";
     			t9 = text(".");
     			attr_dev(span0, "id", "pane-title");
-    			add_location(span0, file$2, 97, 12, 3766);
+    			add_location(span0, file$2, 101, 12, 3954);
     			attr_dev(div0, "class", "info-title");
-    			add_location(div0, file$2, 96, 8, 3728);
-    			add_location(br0, file$2, 102, 12, 4205);
-    			add_location(br1, file$2, 102, 16, 4209);
+    			add_location(div0, file$2, 100, 8, 3916);
+    			add_location(br0, file$2, 106, 12, 4393);
+    			add_location(br1, file$2, 106, 16, 4397);
     			attr_dev(a, "href", "https://commons.pratt.edu/savi/");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$2, 102, 78, 4271);
+    			add_location(a, file$2, 106, 78, 4459);
     			set_style(span1, "color", "var(--parkColor)");
     			set_style(span1, "font-weight", "bold");
-    			add_location(span1, file$2, 102, 277, 4470);
+    			add_location(span1, file$2, 106, 277, 4658);
     			set_style(span2, "color", "var(--parkColor)");
     			set_style(span2, "font-weight", "bold");
-    			add_location(span2, file$2, 102, 368, 4561);
-    			add_location(p, file$2, 101, 12, 3879);
+    			add_location(span2, file$2, 106, 368, 4749);
+    			add_location(p, file$2, 105, 12, 4067);
     			attr_dev(div1, "class", "info-container");
-    			add_location(div1, file$2, 100, 8, 3837);
+    			add_location(div1, file$2, 104, 8, 4025);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
@@ -17781,16 +17781,16 @@ var app = (function () {
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_else_block$1.name,
+    		id: create_else_block_1.name,
     		type: "else",
-    		source: "(95:4) {:else}",
+    		source: "(99:4) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (59:4) {#if active_data}
+    // (57:4) {#if active_data}
     function create_if_block$1(ctx) {
     	let div0;
     	let span0;
@@ -17811,16 +17811,12 @@ var app = (function () {
     	let t5_value = /*active_data*/ ctx[0][0].properties['Text-Address'] + "";
     	let t5;
     	let t6;
+    	let t7;
+    	let br;
+    	let t8;
     	let p2;
     	let span3;
-    	let t7_value = /*active_data*/ ctx[0][0].properties['Text-Copy'] + "";
-    	let t7;
-    	let t8;
-    	let br;
-    	let t9;
-    	let p3;
-    	let span4;
-    	let t11;
+    	let t10;
     	let current;
 
     	carousel = new Carousel({
@@ -17847,6 +17843,13 @@ var app = (function () {
     			$$inline: true
     		});
 
+    	function select_block_type_1(ctx, dirty) {
+    		if (/*active_data*/ ctx[0][0].properties['Text-Copy']) return create_if_block_1;
+    		return create_else_block$1;
+    	}
+
+    	let current_block_type = select_block_type_1(ctx);
+    	let if_block = current_block_type(ctx);
     	let each_value = /*active_photos*/ ctx[1];
     	validate_each_argument(each_value);
     	let each_blocks = [];
@@ -17873,42 +17876,37 @@ var app = (function () {
     			span2 = element("span");
     			t5 = text(t5_value);
     			t6 = space();
+    			if_block.c();
+    			t7 = space();
+    			br = element("br");
+    			t8 = space();
     			p2 = element("p");
     			span3 = element("span");
-    			t7 = text(t7_value);
-    			t8 = space();
-    			br = element("br");
-    			t9 = space();
-    			p3 = element("p");
-    			span4 = element("span");
-    			span4.textContent = "Photo Credits:";
-    			t11 = space();
+    			span3.textContent = "Photo Credits:";
+    			t10 = space();
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
 
     			attr_dev(span0, "id", "pane-title");
-    			add_location(span0, file$2, 61, 12, 2359);
+    			add_location(span0, file$2, 59, 12, 2229);
     			attr_dev(div0, "class", "info-title");
-    			add_location(div0, file$2, 60, 8, 2321);
+    			add_location(div0, file$2, 58, 8, 2191);
     			attr_dev(div1, "class", "photo-container");
-    			add_location(div1, file$2, 64, 8, 2465);
+    			add_location(div1, file$2, 62, 8, 2335);
     			attr_dev(span1, "id", "info-title");
-    			add_location(span1, file$2, 81, 15, 3175);
-    			add_location(p0, file$2, 81, 12, 3172);
+    			add_location(span1, file$2, 79, 15, 3029);
+    			add_location(p0, file$2, 79, 12, 3026);
     			attr_dev(span2, "id", "info-title");
-    			add_location(span2, file$2, 82, 15, 3267);
-    			add_location(p1, file$2, 82, 12, 3264);
-    			attr_dev(span3, "id", "info-title");
-    			add_location(span3, file$2, 83, 15, 3361);
-    			add_location(p2, file$2, 83, 12, 3358);
-    			add_location(br, file$2, 84, 12, 3449);
-    			attr_dev(span4, "class", "photo-credit");
-    			add_location(span4, file$2, 85, 15, 3470);
-    			add_location(p3, file$2, 85, 12, 3467);
+    			add_location(span2, file$2, 80, 15, 3121);
+    			add_location(p1, file$2, 80, 12, 3118);
+    			add_location(br, file$2, 90, 12, 3658);
+    			attr_dev(span3, "class", "photo-credit");
+    			add_location(span3, file$2, 91, 15, 3679);
+    			add_location(p2, file$2, 91, 12, 3676);
     			attr_dev(div2, "class", "info-container");
-    			add_location(div2, file$2, 79, 8, 3128);
+    			add_location(div2, file$2, 77, 8, 2982);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
@@ -17927,15 +17925,13 @@ var app = (function () {
     			append_dev(p1, span2);
     			append_dev(span2, t5);
     			append_dev(div2, t6);
+    			if_block.m(div2, null);
+    			append_dev(div2, t7);
+    			append_dev(div2, br);
+    			append_dev(div2, t8);
     			append_dev(div2, p2);
     			append_dev(p2, span3);
-    			append_dev(span3, t7);
-    			append_dev(div2, t8);
-    			append_dev(div2, br);
-    			append_dev(div2, t9);
-    			append_dev(div2, p3);
-    			append_dev(p3, span4);
-    			append_dev(div2, t11);
+    			append_dev(div2, t10);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].m(div2, null);
@@ -17954,7 +17950,18 @@ var app = (function () {
     			carousel.$set(carousel_changes);
     			if ((!current || dirty & /*active_data*/ 1) && t3_value !== (t3_value = /*active_data*/ ctx[0][0].properties['Text-Acres'] + "")) set_data_dev(t3, t3_value);
     			if ((!current || dirty & /*active_data*/ 1) && t5_value !== (t5_value = /*active_data*/ ctx[0][0].properties['Text-Address'] + "")) set_data_dev(t5, t5_value);
-    			if ((!current || dirty & /*active_data*/ 1) && t7_value !== (t7_value = /*active_data*/ ctx[0][0].properties['Text-Copy'] + "")) set_data_dev(t7, t7_value);
+
+    			if (current_block_type === (current_block_type = select_block_type_1(ctx)) && if_block) {
+    				if_block.p(ctx, dirty);
+    			} else {
+    				if_block.d(1);
+    				if_block = current_block_type(ctx);
+
+    				if (if_block) {
+    					if_block.c();
+    					if_block.m(div2, t7);
+    				}
+    			}
 
     			if (dirty & /*active_photos*/ 2) {
     				each_value = /*active_photos*/ ctx[1];
@@ -17996,6 +18003,7 @@ var app = (function () {
     			destroy_component(carousel);
     			if (detaching) detach_dev(t2);
     			if (detaching) detach_dev(div2);
+    			if_block.d();
     			destroy_each(each_blocks, detaching);
     		}
     	};
@@ -18004,14 +18012,14 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(59:4) {#if active_data}",
+    		source: "(57:4) {#if active_data}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (72:24) {#each active_photos as photo }
+    // (70:20) {#each active_photos as photo }
     function create_each_block_1(ctx) {
     	let img;
     	let img_src_value;
@@ -18021,7 +18029,7 @@ var app = (function () {
     			img = element("img");
     			attr_dev(img, "alt", "test");
     			if (!src_url_equal(img.src, img_src_value = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/" + /*photo*/ ctx[3].site + "/" + /*photo*/ ctx[3].photo + ".jpg")) attr_dev(img, "src", img_src_value);
-    			add_location(img, file$2, 72, 24, 2804);
+    			add_location(img, file$2, 70, 24, 2666);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, img, anchor);
@@ -18040,14 +18048,14 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(72:24) {#each active_photos as photo }",
+    		source: "(70:20) {#each active_photos as photo }",
     		ctx
     	});
 
     	return block;
     }
 
-    // (67:12) <Carousel                  let:showPrevPage                  let:showNextPage                  >
+    // (65:12) <Carousel                  let:showPrevPage                  let:showNextPage                  >
     function create_default_slot$1(ctx) {
     	let each_1_anchor;
     	let each_value_1 = /*active_photos*/ ctx[1];
@@ -18108,14 +18116,14 @@ var app = (function () {
     		block,
     		id: create_default_slot$1.name,
     		type: "slot",
-    		source: "(67:12) <Carousel                  let:showPrevPage                  let:showNextPage                  >",
+    		source: "(65:12) <Carousel                  let:showPrevPage                  let:showNextPage                  >",
     		ctx
     	});
 
     	return block;
     }
 
-    // (71:20) 
+    // (69:16) 
     function create_prev_slot(ctx) {
     	let div;
     	let i;
@@ -18126,10 +18134,10 @@ var app = (function () {
     		c: function create() {
     			div = element("div");
     			i = element("i");
-    			add_location(i, file$2, 70, 100, 2708);
+    			add_location(i, file$2, 68, 96, 2574);
     			attr_dev(div, "slot", "prev");
     			attr_dev(div, "class", "custom-arrow custom-arrow-prev");
-    			add_location(div, file$2, 70, 20, 2628);
+    			add_location(div, file$2, 68, 16, 2494);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -18164,14 +18172,14 @@ var app = (function () {
     		block,
     		id: create_prev_slot.name,
     		type: "slot",
-    		source: "(71:20) ",
+    		source: "(69:16) ",
     		ctx
     	});
 
     	return block;
     }
 
-    // (75:20) 
+    // (73:16) 
     function create_next_slot(ctx) {
     	let div;
     	let i;
@@ -18182,10 +18190,10 @@ var app = (function () {
     		c: function create() {
     			div = element("div");
     			i = element("i");
-    			add_location(i, file$2, 74, 100, 3058);
+    			add_location(i, file$2, 72, 96, 2916);
     			attr_dev(div, "slot", "next");
     			attr_dev(div, "class", "custom-arrow custom-arrow-next");
-    			add_location(div, file$2, 74, 20, 2978);
+    			add_location(div, file$2, 72, 16, 2836);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -18220,14 +18228,126 @@ var app = (function () {
     		block,
     		id: create_next_slot.name,
     		type: "slot",
-    		source: "(75:20) ",
+    		source: "(73:16) ",
     		ctx
     	});
 
     	return block;
     }
 
-    // (87:12) {#each active_photos as photo }
+    // (86:12) {:else}
+    function create_else_block$1(ctx) {
+    	let p0;
+    	let strong0;
+    	let span0;
+    	let t1_value = /*active_data*/ ctx[0][0].properties['Text_Status'] + "";
+    	let t1;
+    	let t2;
+    	let p1;
+    	let strong1;
+    	let t4;
+    	let span1;
+    	let t5_value = /*active_data*/ ctx[0][0].properties['Text_History'] + "";
+    	let t5;
+
+    	const block = {
+    		c: function create() {
+    			p0 = element("p");
+    			strong0 = element("strong");
+    			strong0.textContent = "Status: ";
+    			span0 = element("span");
+    			t1 = text(t1_value);
+    			t2 = space();
+    			p1 = element("p");
+    			strong1 = element("strong");
+    			strong1.textContent = "History:";
+    			t4 = space();
+    			span1 = element("span");
+    			t5 = text(t5_value);
+    			add_location(strong0, file$2, 86, 19, 3397);
+    			attr_dev(span0, "id", "info-title");
+    			add_location(span0, file$2, 86, 44, 3422);
+    			add_location(p0, file$2, 86, 16, 3394);
+    			add_location(strong1, file$2, 87, 19, 3519);
+    			attr_dev(span1, "id", "info-title");
+    			add_location(span1, file$2, 87, 46, 3546);
+    			add_location(p1, file$2, 87, 16, 3516);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, p0, anchor);
+    			append_dev(p0, strong0);
+    			append_dev(p0, span0);
+    			append_dev(span0, t1);
+    			insert_dev(target, t2, anchor);
+    			insert_dev(target, p1, anchor);
+    			append_dev(p1, strong1);
+    			append_dev(p1, t4);
+    			append_dev(p1, span1);
+    			append_dev(span1, t5);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*active_data*/ 1 && t1_value !== (t1_value = /*active_data*/ ctx[0][0].properties['Text_Status'] + "")) set_data_dev(t1, t1_value);
+    			if (dirty & /*active_data*/ 1 && t5_value !== (t5_value = /*active_data*/ ctx[0][0].properties['Text_History'] + "")) set_data_dev(t5, t5_value);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(p0);
+    			if (detaching) detach_dev(t2);
+    			if (detaching) detach_dev(p1);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_else_block$1.name,
+    		type: "else",
+    		source: "(86:12) {:else}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (84:12) {#if active_data[0].properties['Text-Copy']}
+    function create_if_block_1(ctx) {
+    	let p;
+    	let span;
+    	let t_value = /*active_data*/ ctx[0][0].properties['Text-Copy'] + "";
+    	let t;
+
+    	const block = {
+    		c: function create() {
+    			p = element("p");
+    			span = element("span");
+    			t = text(t_value);
+    			attr_dev(span, "id", "info-title");
+    			add_location(span, file$2, 84, 19, 3281);
+    			add_location(p, file$2, 84, 16, 3278);
+    		},
+    		m: function mount(target, anchor) {
+    			insert_dev(target, p, anchor);
+    			append_dev(p, span);
+    			append_dev(span, t);
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*active_data*/ 1 && t_value !== (t_value = /*active_data*/ ctx[0][0].properties['Text-Copy'] + "")) set_data_dev(t, t_value);
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(p);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_1.name,
+    		type: "if",
+    		source: "(84:12) {#if active_data[0].properties['Text-Copy']}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (93:12) {#each active_photos as photo }
     function create_each_block(ctx) {
     	let span;
     	let t_value = /*photo*/ ctx[3].credit + "";
@@ -18240,8 +18360,8 @@ var app = (function () {
     			t = text(t_value);
     			br = element("br");
     			attr_dev(span, "class", "photo-credit");
-    			add_location(span, file$2, 88, 16, 3608);
-    			add_location(br, file$2, 88, 64, 3656);
+    			add_location(span, file$2, 93, 16, 3798);
+    			add_location(br, file$2, 93, 64, 3846);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, span, anchor);
@@ -18261,7 +18381,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(87:12) {#each active_photos as photo }",
+    		source: "(93:12) {#each active_photos as photo }",
     		ctx
     	});
 
@@ -18273,7 +18393,7 @@ var app = (function () {
     	let current_block_type_index;
     	let if_block;
     	let current;
-    	const if_block_creators = [create_if_block$1, create_else_block$1];
+    	const if_block_creators = [create_if_block$1, create_else_block_1];
     	const if_blocks = [];
 
     	function select_block_type(ctx, dirty) {
@@ -18289,7 +18409,7 @@ var app = (function () {
     			div = element("div");
     			if_block.c();
     			attr_dev(div, "class", "right-content");
-    			add_location(div, file$2, 56, 0, 2257);
+    			add_location(div, file$2, 54, 0, 2127);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -18477,8 +18597,6 @@ var app = (function () {
     		//Filter photos to active data
     		if (active_data) {
     			$$invalidate(1, active_photos = photos.filter(function (photo) {
-    				//console.log( "BBL: " + active_data[0].properties.BBL )
-    				//console.log( "Site: " + photo.site )
     				return photo.site === active_data[0].properties.BBL;
     			}));
     		}
