@@ -15035,6 +15035,7 @@ var app = (function () {
     	layer.eachLayer(function (polygon) {
     		let filler = polygon._path.attributes.fill.value;
 
+    		//Assign unique IDs to each polygon
     		if (filler === "#FFFFFF") {
     			polygon._path.id = String(polygon.feature.properties.Block) + String(polygon.feature.properties.Lot) + " outside";
     		} else {
@@ -15046,7 +15047,7 @@ var app = (function () {
     			polygon.bindTooltip(polygon.feature.properties['Text-Name'], {
     				permanent: true,
     				direction: 'center',
-    				offset: [-40, -20], //Center Labels. 
+    				offset: [-40, -10], //Center Labels. 
     				
     			}).openTooltip();
     		}
@@ -15058,6 +15059,7 @@ var app = (function () {
 
     		if (zoomLevel < 17) {
     			[].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
+    				//Bushwick Inlet Label works reverse
     				if (el.innerHTML !== "Bushwick Inlet Park") {
     					el.style.visibility = 'hidden';
     				} else {
@@ -15257,22 +15259,23 @@ var app = (function () {
     	//Add label
     	newMarker.bindTooltip("Bushwick Inlet Park", { permanent: true, direction: 'center' }).openTooltip();
 
-    	var zoomLevel = map.getZoom();
-    	console.log(zoomLevel);
+    	afterUpdate(() => {
+    		//Filter photos to active data
+    		setTimeout(
+    			function () {
+    				[].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
+    					console.log(el.innerHTML);
 
-    	if (zoomLevel === 17) {
-    		console.log("amam");
-    		console.log(document.querySelectorAll('.leaflet-tooltip'));
-
-    		//Hide the label for now. -- This is not working yet!!!
-    		[].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
-    			if (el.innerHTML !== "Bushwick Inlet Park") {
-    				el.style.visibility = 'hidden';
-    			}
-
-    			
-    		});
-    	}
+    					if (el.innerHTML === "Bushwick Inlet Park") {
+    						el.style.visibility = 'hidden';
+    					} else {
+    						el.style.visibility = 'visible';
+    					}
+    				});
+    			},
+    			500
+    		);
+    	});
 
     	const writable_props = ['geojson'];
 
@@ -15295,15 +15298,13 @@ var app = (function () {
     		layerBehind,
     		style,
     		layer,
-    		newMarker,
-    		zoomLevel
+    		newMarker
     	});
 
     	$$self.$inject_state = $$props => {
     		if ('geojson' in $$props) $$invalidate(0, geojson = $$props.geojson);
     		if ('map' in $$props) map = $$props.map;
     		if ('newMarker' in $$props) newMarker = $$props.newMarker;
-    		if ('zoomLevel' in $$props) zoomLevel = $$props.zoomLevel;
     	};
 
     	if ($$props && "$$inject" in $$props) {
@@ -17738,7 +17739,7 @@ var app = (function () {
     	return child_ctx;
     }
 
-    // (106:4) {:else}
+    // (96:4) {:else}
     function create_else_block_1(ctx) {
     	let div0;
     	let span0;
@@ -17778,23 +17779,23 @@ var app = (function () {
     			span2.textContent = "NYC Green Relief & Recovery Fund.";
     			t9 = text(".");
     			attr_dev(span0, "id", "pane-title");
-    			add_location(span0, file$2, 108, 12, 4242);
+    			add_location(span0, file$2, 98, 12, 4121);
     			attr_dev(div0, "class", "info-title");
-    			add_location(div0, file$2, 107, 8, 4204);
-    			add_location(br0, file$2, 113, 12, 4681);
-    			add_location(br1, file$2, 113, 16, 4685);
+    			add_location(div0, file$2, 97, 8, 4083);
+    			add_location(br0, file$2, 103, 12, 4560);
+    			add_location(br1, file$2, 103, 16, 4564);
     			attr_dev(a, "href", "https://commons.pratt.edu/savi/");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$2, 113, 78, 4747);
+    			add_location(a, file$2, 103, 78, 4626);
     			set_style(span1, "color", "var(--parkColor)");
     			set_style(span1, "font-weight", "bold");
-    			add_location(span1, file$2, 113, 277, 4946);
+    			add_location(span1, file$2, 103, 277, 4825);
     			set_style(span2, "color", "var(--parkColor)");
     			set_style(span2, "font-weight", "bold");
-    			add_location(span2, file$2, 113, 368, 5037);
-    			add_location(p, file$2, 112, 12, 4355);
+    			add_location(span2, file$2, 103, 368, 4916);
+    			add_location(p, file$2, 102, 12, 4234);
     			attr_dev(div1, "class", "info-container");
-    			add_location(div1, file$2, 111, 8, 4313);
+    			add_location(div1, file$2, 101, 8, 4192);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
@@ -17827,7 +17828,7 @@ var app = (function () {
     		block,
     		id: create_else_block_1.name,
     		type: "else",
-    		source: "(106:4) {:else}",
+    		source: "(96:4) {:else}",
     		ctx
     	});
 
@@ -17856,14 +17857,9 @@ var app = (function () {
     	let t5;
     	let t6;
     	let t7;
-    	let br0;
     	let t8;
-    	let t9;
-    	let br1;
-    	let t10;
     	let p2;
-    	let span3;
-    	let t12;
+    	let t10;
     	let current;
 
     	carousel = new Carousel({
@@ -17926,16 +17922,11 @@ var app = (function () {
     			t6 = space();
     			if_block0.c();
     			t7 = space();
-    			br0 = element("br");
-    			t8 = space();
     			if (if_block1) if_block1.c();
-    			t9 = space();
-    			br1 = element("br");
-    			t10 = space();
+    			t8 = space();
     			p2 = element("p");
-    			span3 = element("span");
-    			span3.textContent = "Photo Credits:";
-    			t12 = space();
+    			p2.textContent = "Photo Credits:";
+    			t10 = space();
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
@@ -17948,18 +17939,15 @@ var app = (function () {
     			attr_dev(div1, "class", "photo-container");
     			add_location(div1, file$2, 62, 8, 2335);
     			attr_dev(span1, "id", "info-title");
-    			add_location(span1, file$2, 79, 15, 3029);
-    			add_location(p0, file$2, 79, 12, 3026);
+    			add_location(span1, file$2, 74, 15, 2974);
+    			add_location(p0, file$2, 74, 12, 2971);
     			attr_dev(span2, "id", "info-title");
-    			add_location(span2, file$2, 80, 15, 3121);
-    			add_location(p1, file$2, 80, 12, 3118);
-    			add_location(br0, file$2, 90, 12, 3658);
-    			add_location(br1, file$2, 95, 12, 3942);
-    			attr_dev(span3, "class", "photo-credit");
-    			add_location(span3, file$2, 96, 15, 3963);
-    			add_location(p2, file$2, 96, 12, 3960);
+    			add_location(span2, file$2, 75, 15, 3066);
+    			add_location(p1, file$2, 75, 12, 3063);
+    			attr_dev(p2, "class", "photo-credit");
+    			add_location(p2, file$2, 88, 12, 3867);
     			attr_dev(div2, "class", "info-container");
-    			add_location(div2, file$2, 77, 8, 2982);
+    			add_location(div2, file$2, 72, 8, 2927);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
@@ -17980,15 +17968,10 @@ var app = (function () {
     			append_dev(div2, t6);
     			if_block0.m(div2, null);
     			append_dev(div2, t7);
-    			append_dev(div2, br0);
-    			append_dev(div2, t8);
     			if (if_block1) if_block1.m(div2, null);
-    			append_dev(div2, t9);
-    			append_dev(div2, br1);
-    			append_dev(div2, t10);
+    			append_dev(div2, t8);
     			append_dev(div2, p2);
-    			append_dev(p2, span3);
-    			append_dev(div2, t12);
+    			append_dev(div2, t10);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].m(div2, null);
@@ -18026,7 +18009,7 @@ var app = (function () {
     				} else {
     					if_block1 = create_if_block_1(ctx);
     					if_block1.c();
-    					if_block1.m(div2, t9);
+    					if_block1.m(div2, t8);
     				}
     			} else if (if_block1) {
     				if_block1.d(1);
@@ -18090,7 +18073,7 @@ var app = (function () {
     	return block;
     }
 
-    // (70:20) {#each active_photos as photo }
+    // (66:20) {#each active_photos as photo }
     function create_each_block_1(ctx) {
     	let img;
     	let img_src_value;
@@ -18100,7 +18083,7 @@ var app = (function () {
     			img = element("img");
     			attr_dev(img, "alt", "test");
     			if (!src_url_equal(img.src, img_src_value = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/" + /*photo*/ ctx[3].site + "/" + /*photo*/ ctx[3].photo + ".jpg")) attr_dev(img, "src", img_src_value);
-    			add_location(img, file$2, 70, 24, 2666);
+    			add_location(img, file$2, 66, 24, 2613);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, img, anchor);
@@ -18119,14 +18102,14 @@ var app = (function () {
     		block,
     		id: create_each_block_1.name,
     		type: "each",
-    		source: "(70:20) {#each active_photos as photo }",
+    		source: "(66:20) {#each active_photos as photo }",
     		ctx
     	});
 
     	return block;
     }
 
-    // (65:12) <Carousel                  let:showPrevPage                  let:showNextPage                  >
+    // (64:12) <Carousel let:showPrevPage let:showNextPage >
     function create_default_slot$1(ctx) {
     	let each_1_anchor;
     	let each_value_1 = /*active_photos*/ ctx[1];
@@ -18187,14 +18170,14 @@ var app = (function () {
     		block,
     		id: create_default_slot$1.name,
     		type: "slot",
-    		source: "(65:12) <Carousel                  let:showPrevPage                  let:showNextPage                  >",
+    		source: "(64:12) <Carousel let:showPrevPage let:showNextPage >",
     		ctx
     	});
 
     	return block;
     }
 
-    // (69:16) 
+    // (65:16) 
     function create_prev_slot(ctx) {
     	let div;
     	let i;
@@ -18205,10 +18188,10 @@ var app = (function () {
     		c: function create() {
     			div = element("div");
     			i = element("i");
-    			add_location(i, file$2, 68, 96, 2574);
+    			add_location(i, file$2, 64, 96, 2521);
     			attr_dev(div, "slot", "prev");
     			attr_dev(div, "class", "custom-arrow custom-arrow-prev");
-    			add_location(div, file$2, 68, 16, 2494);
+    			add_location(div, file$2, 64, 16, 2441);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -18243,14 +18226,14 @@ var app = (function () {
     		block,
     		id: create_prev_slot.name,
     		type: "slot",
-    		source: "(69:16) ",
+    		source: "(65:16) ",
     		ctx
     	});
 
     	return block;
     }
 
-    // (73:16) 
+    // (69:16) 
     function create_next_slot(ctx) {
     	let div;
     	let i;
@@ -18261,10 +18244,10 @@ var app = (function () {
     		c: function create() {
     			div = element("div");
     			i = element("i");
-    			add_location(i, file$2, 72, 96, 2916);
+    			add_location(i, file$2, 68, 96, 2863);
     			attr_dev(div, "slot", "next");
     			attr_dev(div, "class", "custom-arrow custom-arrow-next");
-    			add_location(div, file$2, 72, 16, 2836);
+    			add_location(div, file$2, 68, 16, 2783);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -18299,14 +18282,14 @@ var app = (function () {
     		block,
     		id: create_next_slot.name,
     		type: "slot",
-    		source: "(73:16) ",
+    		source: "(69:16) ",
     		ctx
     	});
 
     	return block;
     }
 
-    // (86:12) {:else}
+    // (80:12) {:else}
     function create_else_block$1(ctx) {
     	let p0;
     	let strong0;
@@ -18335,14 +18318,14 @@ var app = (function () {
     			t4 = space();
     			span1 = element("span");
     			t5 = text(t5_value);
-    			add_location(strong0, file$2, 86, 19, 3397);
+    			add_location(strong0, file$2, 80, 19, 3340);
     			attr_dev(span0, "id", "info-title");
-    			add_location(span0, file$2, 86, 44, 3422);
-    			add_location(p0, file$2, 86, 16, 3394);
-    			add_location(strong1, file$2, 87, 19, 3519);
+    			add_location(span0, file$2, 80, 44, 3365);
+    			add_location(p0, file$2, 80, 16, 3337);
+    			add_location(strong1, file$2, 81, 19, 3462);
     			attr_dev(span1, "id", "info-title");
-    			add_location(span1, file$2, 87, 46, 3546);
-    			add_location(p1, file$2, 87, 16, 3516);
+    			add_location(span1, file$2, 81, 46, 3489);
+    			add_location(p1, file$2, 81, 16, 3459);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p0, anchor);
@@ -18371,14 +18354,14 @@ var app = (function () {
     		block,
     		id: create_else_block$1.name,
     		type: "else",
-    		source: "(86:12) {:else}",
+    		source: "(80:12) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (84:12) {#if active_data[0].properties['Text-Copy']}
+    // (78:12) {#if active_data[0].properties['Text-Copy']}
     function create_if_block_2(ctx) {
     	let p;
     	let span;
@@ -18391,8 +18374,8 @@ var app = (function () {
     			span = element("span");
     			t = text(t_value);
     			attr_dev(span, "id", "info-title");
-    			add_location(span, file$2, 84, 19, 3281);
-    			add_location(p, file$2, 84, 16, 3278);
+    			add_location(span, file$2, 78, 19, 3224);
+    			add_location(p, file$2, 78, 16, 3221);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -18411,14 +18394,14 @@ var app = (function () {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(84:12) {#if active_data[0].properties['Text-Copy']}",
+    		source: "(78:12) {#if active_data[0].properties['Text-Copy']}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (92:12) {#if active_data[0].properties['Text_Web']}
+    // (85:12) {#if active_data[0].properties['Text_Web']}
     function create_if_block_1(ctx) {
     	let p;
     	let strong;
@@ -18436,13 +18419,13 @@ var app = (function () {
     			span = element("span");
     			a = element("a");
     			t1 = text(t1_value);
-    			add_location(strong, file$2, 92, 19, 3740);
+    			add_location(strong, file$2, 85, 19, 3665);
     			attr_dev(a, "href", a_href_value = /*active_data*/ ctx[0][0].properties['Text_Web']);
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$2, 92, 68, 3789);
+    			add_location(a, file$2, 85, 68, 3714);
     			attr_dev(span, "id", "info-title");
-    			add_location(span, file$2, 92, 45, 3766);
-    			add_location(p, file$2, 92, 16, 3737);
+    			add_location(span, file$2, 85, 45, 3691);
+    			add_location(p, file$2, 85, 16, 3662);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -18467,40 +18450,35 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(92:12) {#if active_data[0].properties['Text_Web']}",
+    		source: "(85:12) {#if active_data[0].properties['Text_Web']}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (98:12) {#each active_photos as photo }
+    // (90:12) {#each active_photos as photo }
     function create_each_block(ctx) {
-    	let span;
+    	let p;
     	let t_value = /*photo*/ ctx[3].credit + "";
     	let t;
-    	let br;
 
     	const block = {
     		c: function create() {
-    			span = element("span");
+    			p = element("p");
     			t = text(t_value);
-    			br = element("br");
-    			attr_dev(span, "class", "photo-credit");
-    			add_location(span, file$2, 98, 16, 4082);
-    			add_location(br, file$2, 98, 64, 4130);
+    			attr_dev(p, "class", "photo-credit");
+    			add_location(p, file$2, 90, 16, 3975);
     		},
     		m: function mount(target, anchor) {
-    			insert_dev(target, span, anchor);
-    			append_dev(span, t);
-    			insert_dev(target, br, anchor);
+    			insert_dev(target, p, anchor);
+    			append_dev(p, t);
     		},
     		p: function update(ctx, dirty) {
     			if (dirty & /*active_photos*/ 2 && t_value !== (t_value = /*photo*/ ctx[3].credit + "")) set_data_dev(t, t_value);
     		},
     		d: function destroy(detaching) {
-    			if (detaching) detach_dev(span);
-    			if (detaching) detach_dev(br);
+    			if (detaching) detach_dev(p);
     		}
     	};
 
@@ -18508,7 +18486,7 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(98:12) {#each active_photos as photo }",
+    		source: "(90:12) {#each active_photos as photo }",
     		ctx
     	});
 
@@ -18952,7 +18930,7 @@ var app = (function () {
     /* src\App.svelte generated by Svelte v3.41.0 */
     const file = "src\\App.svelte";
 
-    // (69:0) {:else}
+    // (72:0) {:else}
     function create_else_block(ctx) {
     	let div;
     	let t0;
@@ -18965,9 +18943,9 @@ var app = (function () {
     			t0 = text("Loading.... ");
     			br = element("br");
     			t1 = text("\n\t\tPlease Wait...");
-    			add_location(br, file, 70, 14, 1743);
+    			add_location(br, file, 73, 14, 1992);
     			attr_dev(div, "class", "wait svelte-6p5msl");
-    			add_location(div, file, 69, 1, 1710);
+    			add_location(div, file, 72, 1, 1959);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -18987,14 +18965,14 @@ var app = (function () {
     		block,
     		id: create_else_block.name,
     		type: "else",
-    		source: "(69:0) {:else}",
+    		source: "(72:0) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (54:0) {#if data.border.length > 0 }
+    // (57:0) {#if data.border.length > 0 }
     function create_if_block(ctx) {
     	let div2;
     	let div0;
@@ -19026,11 +19004,11 @@ var app = (function () {
     			div1 = element("div");
     			create_component(infopanel.$$.fragment);
     			attr_dev(div0, "class", "left-panel");
-    			add_location(div0, file, 55, 2, 1435);
+    			add_location(div0, file, 58, 2, 1684);
     			attr_dev(div1, "class", "right-panel");
-    			add_location(div1, file, 63, 2, 1627);
+    			add_location(div1, file, 66, 2, 1876);
     			attr_dev(div2, "class", "two-column");
-    			add_location(div2, file, 54, 1, 1408);
+    			add_location(div2, file, 57, 1, 1657);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div2, anchor);
@@ -19075,14 +19053,14 @@ var app = (function () {
     		block,
     		id: create_if_block.name,
     		type: "if",
-    		source: "(54:0) {#if data.border.length > 0 }",
+    		source: "(57:0) {#if data.border.length > 0 }",
     		ctx
     	});
 
     	return block;
     }
 
-    // (57:3) <LeafletMap >
+    // (60:3) <LeafletMap >
     function create_default_slot(ctx) {
     	let geojson;
     	let t0;
@@ -19155,7 +19133,7 @@ var app = (function () {
     		block,
     		id: create_default_slot.name,
     		type: "slot",
-    		source: "(57:3) <LeafletMap >",
+    		source: "(60:3) <LeafletMap >",
     		ctx
     	});
 
@@ -19188,7 +19166,7 @@ var app = (function () {
     			if_block_anchor = empty();
     			attr_dev(link, "rel", "stylesheet");
     			attr_dev(link, "href", "https://use.typekit.net/kjc8ltt.css");
-    			add_location(link, file, 50, 1, 1294);
+    			add_location(link, file, 53, 1, 1543);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -19262,8 +19240,11 @@ var app = (function () {
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('App', slots, []);
     	let active_data;
+
+    	//This gets filled with loadaed data to highlight
     	let data = { bip: [], border: [] }; //parks:[]
 
+    	//Load Data
     	onMount(async () => {
     		const res = await fetch(url_lots);
     		let data_lots = await res.json();
@@ -19271,14 +19252,17 @@ var app = (function () {
     		const res2 = await fetch(url_border);
     		let border_lots = await res2.json();
     		$$invalidate(1, data.border = border_lots.features, data);
-    	}); //console.log(data);
+    	});
 
     	//Handle Clicked Geojson Object, Point or Polygon. Returns active Polygon Object
     	function handleMessage(e) {
+    		//Get clicked polygons unique ID
     		let active = e.detail.active;
-    		let obj_id = active._path.id;
-    		obj_id = obj_id.split(" ")[0];
 
+    		let obj_id = active._path.id;
+    		obj_id = obj_id.split(" ")[0]; //Onject has multiple IDs. 0 is the unique
+
+    		//Filter data by unique ID to retireve active polygon from the GeoJSON data not HTML object. 
     		$$invalidate(0, active_data = data.bip.filter(function (feature) {
     			let blocklot = String(feature.properties.Block) + String(feature.properties.Lot);
 

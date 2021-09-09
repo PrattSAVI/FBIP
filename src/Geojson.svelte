@@ -40,6 +40,7 @@
 		}); 
     }
 
+    //General styling to feed into Leaflet
     function getColor(d) {
         return d === "State" ? "var(--stateColor)" :
             d === "Parks"  ? "var(--parkColor)" :
@@ -88,6 +89,7 @@
     // Assign a seperate ID for park and outside elements. 
     layer.eachLayer(function (polygon) {
             let filler = polygon._path.attributes.fill.value;
+            //Assign unique IDs to each polygon
             if (filler === "#FFFFFF"){
                 polygon._path.id = String(polygon.feature.properties.Block) + String(polygon.feature.properties.Lot) + " outside"
             }else{
@@ -99,7 +101,7 @@
                 polygon.bindTooltip(polygon.feature.properties['Text-Name'],{
                     permanent:true,
                     direction: 'center',
-                    offset: [-40, -20] //Center Labels. 
+                    offset: [-40, -10] //Center Labels. 
                 } ).openTooltip();
             }
     });
@@ -109,6 +111,7 @@
         var zoomLevel = map.getZoom();
         if (zoomLevel < 17 ){
             [].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
+                //Bushwick Inlet Label works reverse
                 if( el.innerHTML !== "Bushwick Inlet Park" ){
                     el.style.visibility = 'hidden';
                 }else{

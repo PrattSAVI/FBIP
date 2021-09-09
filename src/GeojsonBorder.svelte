@@ -63,25 +63,23 @@
         direction: 'center',
     }).openTooltip();
 
+    afterUpdate(() => {
+        //Filter photos to active data
+        setTimeout( function(){
+           
+            [].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
+                console.log( el.innerHTML );
+                if( el.innerHTML === "Bushwick Inlet Park" ){
+                    el.style.visibility = 'hidden';
+                }else{
+                    el.style.visibility = 'visible';
+                }
+            });
 
-    var zoomLevel = map.getZoom();
-    console.log(zoomLevel);
-        
-    if ( zoomLevel === 17 ){
-        console.log("amam");
-
-        console.log( document.querySelectorAll('.leaflet-tooltip' ) );
-        //Hide the label for now. -- This is not working yet!!!
-        [].forEach.call(document.querySelectorAll('.leaflet-tooltip' ), function (el) {
-            if( el.innerHTML !== "Bushwick Inlet Park" ){
-                el.style.visibility = 'hidden';
-            };
-        });
-    }
-
-
+        },500)
+	});
+  
 	
-    
     
 </script>
 

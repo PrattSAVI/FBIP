@@ -6,17 +6,20 @@
 	import InfoPanel from './InfoPanel.svelte';
 	import Legend from './Legend.svelte';
 
+	//Retrieve Data from Github Repo
 	const url_lots = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/BIP_FinalLots.geojson";
 	const url_border = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/BIP_lines_4326.geojson";
 
 	let active_data;
 
+	//This gets filled with loadaed data to highlight
 	let data = {
 		bip:[],
 		border:[],
 		//parks:[]
 	}
 
+	//Load Data
 	onMount(async () => {
 		const res = await fetch( url_lots );
 		let data_lots = await res.json();
@@ -25,16 +28,16 @@
 		const res2 = await fetch( url_border );
 		let border_lots = await res2.json();
 		data.border = border_lots.features;
-
-		//console.log(data);
 	});
 
 	//Handle Clicked Geojson Object, Point or Polygon. Returns active Polygon Object
 	function handleMessage(e){
+		//Get clicked polygons unique ID
 		 let active = e.detail.active;
 		 let obj_id = active._path.id
-		 obj_id = obj_id.split(" ")[0]
+		 obj_id = obj_id.split(" ")[0] //Onject has multiple IDs. 0 is the unique
 
+		 //Filter data by unique ID to retireve active polygon from the GeoJSON data not HTML object. 
 		active_data = data.bip.filter(function(feature){
 			let blocklot = String(feature.properties.Block) + String(feature.properties.Lot);
 			if( blocklot === obj_id ){

@@ -71,6 +71,7 @@ p {
     font-weight: 400;
     padding: 0px 15px 0px 15px;
     order: 3;
+    padding-bottom: 20px!important;
 }
 
 .info-container>p {
@@ -86,9 +87,9 @@ p {
 
 .photo-credit {
     font-size: 8pt;
-    font-style: italic;
     color: #555;
     font-weight: 400;
+    line-height: 0.04rem;
 }
 
 .photo-container {
@@ -113,9 +114,9 @@ p {
     .photo-container {
         flex-direction: row;
         order: 3!important;
-        margin-left: 10px;
-        margin-right: 100px;
-        margin-left: 100px;
+        width: 400px;
+        height: auto;
+        margin: auto;
     }
     .two-column {
         flex-direction: column;
@@ -133,13 +134,6 @@ p {
     }
     .legend {
         visibility: hidden;
-    }
-    .photo-loc {
-        width: auto;
-        height: var(--tnsize)!important;
-        order: 3!important;
-        margin-right: 10px;
-        object-fit: cover;
     }
     .info-container {
         order: 2!important;
@@ -214,4 +208,15 @@ img {
     background-color: #cfcfcf;
     border-radius: 20px;
     border: 3px solid white;
+}
+
+a:link,
+a:visited {
+    color: var(--stateColor);
+    cursor: pointer;
+}
+
+a:link:active,
+a:visited:active {
+    color: var(--otherParks);
 }

@@ -61,25 +61,19 @@
         </div>
         
         <div class="photo-container">
-
-            <Carousel
-                let:showPrevPage
-                let:showNextPage
-                >
+            <Carousel let:showPrevPage let:showNextPage >
                 <div slot="prev" on:click={showPrevPage} class="custom-arrow custom-arrow-prev"><i /></div>
                     {#each active_photos as photo }  
                         <img alt="test" src= "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/{photo.site}/{photo.photo}.jpg" />  
                     {/each}
                 <div slot="next" on:click={showNextPage} class="custom-arrow custom-arrow-next"><i /></div>
             </Carousel>
-
         </div>
 
         <div class="info-container">
 
             <p><span id='info-title' >{active_data[0].properties['Text-Acres']}</span></p>
             <p><span id='info-title' >{active_data[0].properties['Text-Address']}</span></p>
-
 
             {#if active_data[0].properties['Text-Copy']}
                 <p><span id='info-title' >{active_data[0].properties['Text-Copy']}</span></p>
@@ -88,18 +82,14 @@
                 <p><strong>History: </strong> <span id='info-title' >{active_data[0].properties['Text_History']}</span></p>
             {/if}
 
-            <br>
             {#if active_data[0].properties['Text_Web']}
                 <p><strong>Website: </strong><span id='info-title' ><a href={active_data[0].properties['Text_Web']} target="_blank">{active_data[0].properties['Text_Web']}</a></span></p>
             {/if}
 
-            <br>
-            <p><span class='photo-credit'>Photo Credits:</span></p> 
+            <p class='photo-credit'>Photo Credits:</p>
             {#each active_photos as photo }   
-                <span class='photo-credit'>{photo.credit}</span><br>
+                <p class='photo-credit'>{photo.credit}</p>
             {/each}
-
-
 
         </div>
 
