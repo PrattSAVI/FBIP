@@ -16,7 +16,6 @@
 	let data = {
 		bip:[],
 		border:[],
-		//parks:[]
 	}
 
 	//Load Data

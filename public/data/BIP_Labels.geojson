@@ -1,0 +1,16 @@
+{
+"type": "FeatureCollection",
+"name": "BIP_Labels",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "label": "Monitor Museum", "Main": "lot" }, "geometry": { "type": "Point", "coordinates": [ -73.96008155, 40.72576455 ] } },
+{ "type": "Feature", "properties": { "label": "40 Quay", "Main": "lot" }, "geometry": { "type": "Point", "coordinates": [ -73.95900968, 40.72586489 ] } },
+{ "type": "Feature", "properties": { "label": "Motiva", "Main": "lot" }, "geometry": { "type": "Point", "coordinates": [ -73.95805111, 40.72528663 ] } },
+{ "type": "Feature", "properties": { "label": "Bayside", "Main": "lot" }, "geometry": { "type": "Point", "coordinates": [ -73.95974738, 40.72430238 ] } },
+{ "type": "Feature", "properties": { "label": "50 Kent", "Main": "lot" }, "geometry": { "type": "Point", "coordinates": [ -73.95957084, 40.72319857 ] } },
+{ "type": "Feature", "properties": { "label": "CitiStorage", "Main": "lot" }, "geometry": { "type": "Point", "coordinates": [ -73.96132996, 40.72331325 ] } },
+{ "type": "Feature", "properties": { "label": "86 Kent", "Main": "lot" }, "geometry": { "type": "Point", "coordinates": [ -73.96141193, 40.72234322 ] } },
+{ "type": "Feature", "properties": { "label": "Marsha P. Johnson State Park", "Main": "lot" }, "geometry": { "type": "Point", "coordinates": [ -73.96210549, 40.72149742 ] } },
+{ "type": "Feature", "properties": { "label": "BUSHWICK INLET PARK", "Main": "main" }, "geometry": { "type": "Point", "coordinates": [ -73.96089491, 40.72357607 ] } }
+]
+}
