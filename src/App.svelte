@@ -1,5 +1,6 @@
 <script>
 	import LeafletMap from './Map.svelte'
+	import HomeButton from './Home.svelte'
 	import {onMount} from 'svelte'
 	import GeoJson from './Geojson.svelte';
 	import GeoJsonBorder from './GeojsonBorder.svelte';
@@ -46,17 +47,26 @@
 			}
 		})
 	}
-	
+
+	function handleClick(e){
+		active_data = null;
+		let active = document.getElementsByClassName("active")[0];
+		active.className.baseVal = "leaflet-interactive"
+	}
+
 </script>
 
 <svelte:head>
 	<link rel="stylesheet" href="https://use.typekit.net/kjc8ltt.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+	<script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
 </svelte:head>
 
 {#if data.border.length > 0 }
 	<div class="two-column">
 		<div class="left-panel">
 			<LeafletMap >
+				<HomeButton on:homebutton={handleClick}/>
 				<GeoJson on:message={handleMessage} geojson={data.bip} />
 				<GeoJsonBorder geojson={data.border} />
 				<Legend />

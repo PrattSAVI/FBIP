@@ -21,7 +21,6 @@
     attribution:'Design by <a href="https://commons.pratt.edu/savi/">SAVI</a>, Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
   }).addTo(map);
 
-
   onMount(() => {
     //For Resize Updates
     mapContainer.appendChild(map.getContainer());
@@ -42,6 +41,7 @@
     height: 100%;
     width: 100%;
   }
+
 </style>
 
 <div class="map" bind:this="{mapContainer}">

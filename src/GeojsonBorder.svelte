@@ -68,7 +68,6 @@
         setTimeout( function(){
            
             [].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
-                console.log( el.innerHTML );
                 if( el.innerHTML === "Bushwick Inlet Park" ){
                     el.style.visibility = 'hidden';
                 }else{
