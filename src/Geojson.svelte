@@ -96,23 +96,38 @@
                 polygon._path.id = String(polygon.feature.properties.Block) + String(polygon.feature.properties.Lot) + " bip"
             }
 
-            //Add Labels
-            if( polygon.feature.properties.BIP ){
-                polygon.bindTooltip(polygon.feature.properties['Text-Name'],{
-                    permanent:true,
-                    direction: 'center',
-                    offset: [-40, -10] //Center Labels. 
-                } ).openTooltip();
-            }
     });
+
+    function addLabel2(lat,lon,label){
+
+        var myIcon = L.divIcon({
+            className: 'map-labels',
+            html: label
+        });
+        // you can set .my-div-icon styles in CSS
+        L.marker([lat , lon ], {icon: myIcon}).addTo(map);
+    
+    }
+
+    //Create labels in specific locations. 
+    //Bushwick Inlet label is at the Border file. 
+    addLabel2( 40.7216 , -73.9624 , "Marsha&nbsp;P. Johnson State&nbsp;Park" );
+    addLabel2( 40.72430238 , -73.95974738 , "Bayside" );
+    addLabel2( 40.7233, -73.9599 , "50&nbsp;Kent" );
+    addLabel2( 40.72589720 , -73.9612948 , "Monitor&nbsp;Museum" );
+    addLabel2( 40.72586 , -73.9591 , "40&nbsp;Quay" );
+    addLabel2( 40.72525 , -73.9581 , "Motiva" );
+    addLabel2( 40.72331325 , -73.96132996 , "CitiStorage" );
+    addLabel2( 40.72234 , -73.9616 , "86&nbsp;Kent" );
+    addLabel2( 40.7235,-73.961 , "BUSHWICK INLET&nbsp;PARK" );
 
     //Hide tooltips based on zoom level. Currently This is set to 17
     map.on('zoomend', function(e){
         var zoomLevel = map.getZoom();
         if (zoomLevel < 17 ){
-            [].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
+            [].forEach.call(document.querySelectorAll('.map-labels'), function (el) {
                 //Bushwick Inlet Label works reverse
-                if( el.innerHTML !== "Bushwick Inlet Park" ){
+                if( el.innerHTML !== "BUSHWICK INLET&nbsp;PARK" ){
                     el.style.visibility = 'hidden';
                 }else{
                     el.style.visibility = 'visible';
@@ -120,8 +135,8 @@
             });
         
         }else{
-            [].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
-                if( el.innerHTML !== "Bushwick Inlet Park" ){
+            [].forEach.call(document.querySelectorAll('.map-labels'), function (el) {
+                if( el.innerHTML !== "BUSHWICK INLET&nbsp;PARK" ){
                     el.style.visibility = 'visible';
                 }else{
                     el.style.visibility = 'hidden';

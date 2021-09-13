@@ -191,6 +191,21 @@ img {
     line-height: 11pt;
 }
 
+.map-labels {
+    width: auto!important;
+    height: auto!important;
+    inline-size: min-content;
+    padding: 0;
+    border: none !important;
+    box-shadow: none!important;
+    color: white!important;
+    font-size: 11pt;
+    font-weight: 700;
+    white-space: normal!important;
+    line-height: 11pt;
+    overflow-wrap: normal!important;
+}
+
 
 /* Works on Firefox */
 

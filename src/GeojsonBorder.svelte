@@ -49,26 +49,12 @@
         
     });
 
-    //Add Label to the whole park
-    // Add Point
-    var newMarker = new L.circle( L.latLng(40.723,-73.961) ,{
-        stroke:false,
-        opacity:0,
-        fillOpacity:0
-    } ).addTo(map);
-
-    //Add label
-    newMarker.bindTooltip( "Bushwick Inlet Park",{
-        permanent:true,
-        direction: 'center',
-    }).openTooltip();
-
     afterUpdate(() => {
         //Filter photos to active data
         setTimeout( function(){
            
-            [].forEach.call(document.querySelectorAll('.leaflet-tooltip'), function (el) {
-                if( el.innerHTML === "Bushwick Inlet Park" ){
+            [].forEach.call(document.querySelectorAll('.map-labels'), function (el) {
+                if( el.innerHTML === "BUSHWICK INLET&nbsp;PARK" ){
                     el.style.visibility = 'hidden';
                 }else{
                     el.style.visibility = 'visible';
