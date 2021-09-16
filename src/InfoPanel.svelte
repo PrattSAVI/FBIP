@@ -28,9 +28,9 @@
         {site:"3025900025",photo:"2",credit:"Greenpoint Monitor Museum"},
         {site:"3025900025",photo:"3",credit:"Greenpoint Monitor Museum"},
 
-        {site:"3025900100",photo:"1",credit:"Motiva"},
-        {site:"3025900100",photo:"2",credit:"Motiva"},
-        {site:"3025900100",photo:"3",credit:"Motiva"},
+        {site:"3025900100",photo:"1",credit:"NYC Dept of Parks & Recreation"},
+        {site:"3025900100",photo:"2",credit:"NYC Dept of Parks & Recreation"},
+        {site:"3025900100",photo:"3",credit:"NYC Dept of Parks & Recreation"},
 
         {site:"3025900001",photo:"1",credit:"Google Maps"},
         {site:"3025900001",photo:"2",credit:"Google Maps"},
@@ -39,11 +39,21 @@
 
     let active_photos = [];
 
+    function getCredits(data){
+        let a = []
+        data.forEach(function(d){
+            a.push(d.credit)
+        })
+        a = [...new Set(a)];
+        console.log( a.join(', ') )
+        return a.join(', ');
+    }
+
     afterUpdate(() => {
         //Filter photos to active data
 		if (active_data){
             active_photos = photos.filter(function(photo){
-                return photo.site === active_data[0].properties.BBL
+                return photo.site === active_data[0].properties.BBL;
             })
         }
 	});
@@ -62,7 +72,7 @@
         
         <div class="photo-container">
             <Carousel let:showPrevPage let:showNextPage >
-                <div slot="prev" on:click={showPrevPage} class="custom-arrow custom-arrow-prev"><i /></div>
+                <div slot="prev" on:click={showPrevPage} class="custom-arrow custom-arrow-prev"><i/></div>
                     {#each active_photos as photo }  
                         <img alt="test" src= "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/{photo.site}/{photo.photo}.jpg" />  
                     {/each}
@@ -86,10 +96,9 @@
                 <p><strong>Website: </strong><span id='info-title' ><a href={active_data[0].properties['Text_Web']} target="_blank">{active_data[0].properties['Text_Web']}</a></span></p>
             {/if}
 
-            <p class='photo-credit'>Photo Credits:</p>
-            {#each active_photos as photo }   
-                <p class='photo-credit'>{photo.credit}</p>
-            {/each}
+            {#if active_photos}
+                <p class='photo-credit'>Photo Credits: {getCredits(active_photos)}</p>
+            {/if}
 
         </div>
 
