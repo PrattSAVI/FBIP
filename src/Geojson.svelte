@@ -42,20 +42,20 @@
 
     //General styling to feed into Leaflet
     function getColor(d) {
-        return d === "State" ? "var(--stateColor)" :
-            d === "Parks"  ? "var(--parkColor)" :
+        return d === "other" ? "var(--stateColor)" :
+            d === "bip"  ? "var(--parkColor)" :
             d === ""  ? "FFFFFF" :
                         '#FFFFFF';
     }
     function LineColor(d) {
-        return d === "State" ? "white" :
-            d === "Parks"  ? "white" :
+        return d === "other" ? "white" :
+            d === "bip"  ? "white" :
             d === ""  ? "black" :
                         '#000000';
     }
     function lineWeight(d) {
-        return d === "State" ? 0.8 :
-            d === "Parks"  ? 0.8 :
+        return d === "other" ? 0.8 :
+            d === "bip"  ? 0.8 :
             d === ""  ? .5:
                         .5;
     }

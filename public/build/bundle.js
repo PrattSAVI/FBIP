@@ -151,6 +151,9 @@ var app = (function () {
             throw new Error('Function called outside component initialization');
         return current_component;
     }
+    function beforeUpdate(fn) {
+        get_current_component().$$.before_update.push(fn);
+    }
     function onMount(fn) {
         get_current_component().$$.on_mount.push(fn);
     }
@@ -15036,23 +15039,23 @@ var app = (function () {
     }
 
     function getColor(d) {
-    	return d === "State"
+    	return d === "other"
     	? "var(--stateColor)"
-    	: d === "Parks"
+    	: d === "bip"
     		? "var(--parkColor)"
     		: d === "" ? "FFFFFF" : '#FFFFFF';
     }
 
     function LineColor(d) {
-    	return d === "State"
+    	return d === "other"
     	? "white"
-    	: d === "Parks" ? "white" : d === "" ? "black" : '#000000';
+    	: d === "bip" ? "white" : d === "" ? "black" : '#000000';
     }
 
     function lineWeight(d) {
-    	return d === "State"
+    	return d === "other"
     	? 0.8
-    	: d === "Parks" ? 0.8 : d === "" ? .5 : .5;
+    	: d === "bip" ? 0.8 : d === "" ? .5 : .5;
     }
 
     // 1.BIP Lot STYLE
@@ -15420,12 +15423,18 @@ var app = (function () {
     	}
     }
 
-    function getNextPageIndexLimited(currentPageIndex, pagesCount) {
+    function getNextPageIndexLimited({
+      currentPageIndex,
+      pagesCount,
+    }) {
       if (pagesCount < 1) throw new Error('pagesCount must be at least 1')
       return Math.min(Math.max(currentPageIndex + 1, 0), pagesCount - 1)
     }
 
-    function getNextPageIndexInfinte(currentPageIndex, pagesCount) {
+    function getNextPageIndexInfinte({
+      currentPageIndex,
+      pagesCount,
+    }) {
       if (pagesCount < 1) throw new Error('pagesCount must be at least 1')
       const newCurrentPageIndex = Math.max(currentPageIndex, 0) + 1;
       return newCurrentPageIndex > pagesCount - 1 ? 0 : Math.max(newCurrentPageIndex, 0)
@@ -15435,12 +15444,18 @@ var app = (function () {
       return infinite ? getNextPageIndexInfinte : getNextPageIndexLimited
     }
 
-    function getPrevPageIndexLimited(currentPageIndex, pagesCount) {
+    function getPrevPageIndexLimited({
+      currentPageIndex,
+      pagesCount,
+    }) {
       if (pagesCount < 1) throw new Error('pagesCount must be at least 1')
       return Math.max(Math.min(currentPageIndex - 1, pagesCount - 1), 0)
     }
 
-    function getPrevPageIndexInfinte(currentPageIndex, pagesCount) {
+    function getPrevPageIndexInfinte({
+      currentPageIndex,
+      pagesCount,
+    }) {
       if (pagesCount < 1) throw new Error('pagesCount must be at least 1')
       const newCurrentPageIndex = Math.min(currentPageIndex, pagesCount - 1) - 1;
       return newCurrentPageIndex >= 0 ? Math.min(newCurrentPageIndex, pagesCount - 1) : pagesCount - 1
@@ -15450,12 +15465,19 @@ var app = (function () {
       return infinite ? getPrevPageIndexInfinte : getPrevPageIndexLimited
     }
 
-    function getPageIndex(pageIndex, pagesCount) {
+    function getPageIndex({
+      pageIndex,
+      pagesCount,
+    }) {
       if (pagesCount < 1) throw new Error('pagesCount must be at least 1')
       return pageIndex < 0 ? 0 : Math.min(pageIndex, pagesCount - 1)
     }
 
-    function getAdjacentIndexes(pageIndex, pagesCount, infinite) {
+    function getAdjacentIndexes({
+      pageIndex,
+      pagesCount,
+      infinite,
+    }) {
       if (pagesCount < 1) throw new Error('pagesCount must be at least 1')
       const _pageIndex = Math.max(0, Math.min(pageIndex, pagesCount - 1));
       let rangeStart = _pageIndex - 1;
@@ -15473,6 +15495,87 @@ var app = (function () {
       return [...new Set([rangeStart, rangeEnd, _pageIndex])].sort((a, b) => a - b)
     }
 
+    function getClones({
+      oneSideClonesCount,
+      pagesContainerChildren,
+    }) {
+      // TODO: add fns to remove clones if needed
+      const clonesToAppend = [];
+      for (let i=0; i<oneSideClonesCount; i++) {
+        clonesToAppend.push(pagesContainerChildren[i].cloneNode(true));
+      }
+
+      const clonesToPrepend = [];
+      const len = pagesContainerChildren.length;
+      for (let i=len-1; i>len-1-oneSideClonesCount; i--) {
+        clonesToPrepend.push(pagesContainerChildren[i].cloneNode(true));
+      }
+
+      return {
+        clonesToAppend,
+        clonesToPrepend,
+      }
+    }
+
+    function applyClones({
+      pagesContainer,
+      clonesToAppend,
+      clonesToPrepend,
+    }) {
+      for (let i=0; i<clonesToAppend.length; i++) {
+        pagesContainer.append(clonesToAppend[i]);
+      }
+      for (let i=0; i<clonesToPrepend.length; i++) {
+        pagesContainer.prepend(clonesToPrepend[i]);
+      }
+    }
+
+    function applyPageSizes({
+      pagesContainerChildren,
+      pageWidth,
+    }) {
+      for (let pageIndex=0; pageIndex<pagesContainerChildren.length; pageIndex++) {
+        pagesContainerChildren[pageIndex].style.minWidth = `${pageWidth}px`;
+        pagesContainerChildren[pageIndex].style.maxWidth = `${pageWidth}px`;
+      }
+    }
+
+    function getCurrentPageIndexWithoutClones({
+      currentPageIndex,
+      pagesCount,
+      oneSideClonesCount,
+      infinite,
+    }) {
+      if (infinite) {
+        if (currentPageIndex === pagesCount - 1) return 0
+        if (currentPageIndex === 0) return (pagesCount - oneSideClonesCount * 2) - 1
+        return currentPageIndex - 1
+      }
+      return currentPageIndex
+    }
+
+    function getPagesCountWithoutClones({
+      pagesCount,
+      oneSideClonesCount,
+    }) {
+      const bothSidesClonesCount = oneSideClonesCount * 2;
+      return Math.max(pagesCount - bothSidesClonesCount, 1)
+    }
+
+    function getOneSideClonesCount({
+      infinite,
+    }) {
+      return infinite ? 1 : 0
+    }
+
+    function createResizeObserver(onResize) {
+      return new ResizeObserver(entries => {
+        onResize({
+          width: entries[0].contentRect.width,
+        });
+      });
+    }
+
     const initState = {
       currentPageIndex: 0,
     };
@@ -15483,29 +15586,34 @@ var app = (function () {
       function init(initialPageIndex) {
         set({
           ...initState,
-          currentPageIndex: initialPageIndex
+          currentPageIndex: initialPageIndex,
         });
       }
 
-      function setCurrentPageIndex(index) {
-        update(store => ({
-          ...store,
-          currentPageIndex: index,
-        }));
-      }
-
-      function moveToPage({ pageIndex, pagesCount }) {
+      function moveToPage({
+        pageIndex,
+        pagesCount,
+      }) {
         update(store => {
           return {
             ...store,
-            currentPageIndex: getPageIndex(pageIndex, pagesCount),
+            currentPageIndex: getPageIndex({
+              pageIndex,
+              pagesCount,
+            }),
           }
         });
       }
 
-      function next({ infinite, pagesCount }) {
+      function next({
+        infinite,
+        pagesCount,
+      }) {
         update(store => {
-          const newCurrentPageIndex = getNextPageIndexFn(infinite)(store.currentPageIndex, pagesCount);
+          const newCurrentPageIndex = getNextPageIndexFn(infinite)({
+            currentPageIndex: store.currentPageIndex,
+            pagesCount,
+          });
           return {
             ...store,
             currentPageIndex: newCurrentPageIndex,
@@ -15513,9 +15621,15 @@ var app = (function () {
         });
       }
 
-      function prev({ infinite, pagesCount }) {
+      function prev({
+        infinite,
+        pagesCount,
+      }) {
         update(store => {
-          const newCurrentPageIndex = getPrevPageIndexFn(infinite)(store.currentPageIndex, pagesCount);
+          const newCurrentPageIndex = getPrevPageIndexFn(infinite)({
+            currentPageIndex: store.currentPageIndex,
+            pagesCount,
+          });
           return {
             ...store,
             currentPageIndex: newCurrentPageIndex,
@@ -15527,7 +15641,6 @@ var app = (function () {
         subscribe,
         next,
         prev,
-        setCurrentPageIndex,
         init,
         moveToPage,
       };
@@ -16142,14 +16255,6 @@ var app = (function () {
       source.removeEventListener('touchmove', cb);
     }
 
-    // resize event
-    function addResizeEventListener(cb) {
-      window.addEventListener('resize', cb);
-    }
-    function removeResizeEventListener(cb) {
-      window.removeEventListener('resize', cb);
-    }
-
     function createDispatcher(source) {
       return function (event, data) {
         source.dispatchEvent(
@@ -16452,14 +16557,14 @@ var app = (function () {
     const file$3 = "node_modules\\svelte-carousel\\src\\components\\Carousel\\Carousel.svelte";
 
     const get_dots_slot_changes = dirty => ({
-    	currentPageIndex: dirty[0] & /*originalCurrentPageIndex*/ 64,
-    	pagesCount: dirty[0] & /*originalPagesCount*/ 32,
+    	currentPageIndex: dirty[0] & /*currentPageIndexWithoutClones*/ 64,
+    	pagesCount: dirty[0] & /*pagesCountWithoutClones*/ 32,
     	loaded: dirty[0] & /*loaded*/ 8192
     });
 
     const get_dots_slot_context = ctx => ({
-    	currentPageIndex: /*originalCurrentPageIndex*/ ctx[6],
-    	pagesCount: /*originalPagesCount*/ ctx[5],
+    	currentPageIndex: /*currentPageIndexWithoutClones*/ ctx[6],
+    	pagesCount: /*pagesCountWithoutClones*/ ctx[5],
     	showPage: /*handlePageChange*/ ctx[14],
     	loaded: /*loaded*/ ctx[13]
     });
@@ -16480,7 +16585,7 @@ var app = (function () {
     	loaded: /*loaded*/ ctx[13]
     });
 
-    // (324:4) {#if arrows}
+    // (354:4) {#if arrows}
     function create_if_block_3$1(ctx) {
     	let current;
     	const prev_slot_template = /*#slots*/ ctx[38].prev;
@@ -16513,7 +16618,7 @@ var app = (function () {
     					);
     				}
     			} else {
-    				if (prev_slot_or_fallback && prev_slot_or_fallback.p && (!current || dirty[0] & /*infinite, originalCurrentPageIndex*/ 68)) {
+    				if (prev_slot_or_fallback && prev_slot_or_fallback.p && (!current || dirty[0] & /*infinite, currentPageIndexWithoutClones*/ 68)) {
     					prev_slot_or_fallback.p(ctx, !current ? [-1, -1] : dirty);
     				}
     			}
@@ -16536,14 +16641,14 @@ var app = (function () {
     		block,
     		id: create_if_block_3$1.name,
     		type: "if",
-    		source: "(324:4) {#if arrows}",
+    		source: "(354:4) {#if arrows}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (325:39)           
+    // (355:39)           
     function fallback_block_2(ctx) {
     	let div;
     	let arrow;
@@ -16552,7 +16657,7 @@ var app = (function () {
     	arrow = new Arrow({
     			props: {
     				direction: "prev",
-    				disabled: !/*infinite*/ ctx[2] && /*originalCurrentPageIndex*/ ctx[6] === 0
+    				disabled: !/*infinite*/ ctx[2] && /*currentPageIndexWithoutClones*/ ctx[6] === 0
     			},
     			$$inline: true
     		});
@@ -16564,7 +16669,7 @@ var app = (function () {
     			div = element("div");
     			create_component(arrow.$$.fragment);
     			attr_dev(div, "class", "sc-carousel__arrow-container svelte-h7bw08");
-    			add_location(div, file$3, 325, 8, 8729);
+    			add_location(div, file$3, 355, 8, 8863);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -16573,7 +16678,7 @@ var app = (function () {
     		},
     		p: function update(ctx, dirty) {
     			const arrow_changes = {};
-    			if (dirty[0] & /*infinite, originalCurrentPageIndex*/ 68) arrow_changes.disabled = !/*infinite*/ ctx[2] && /*originalCurrentPageIndex*/ ctx[6] === 0;
+    			if (dirty[0] & /*infinite, currentPageIndexWithoutClones*/ 68) arrow_changes.disabled = !/*infinite*/ ctx[2] && /*currentPageIndexWithoutClones*/ ctx[6] === 0;
     			arrow.$set(arrow_changes);
     		},
     		i: function intro(local) {
@@ -16595,14 +16700,14 @@ var app = (function () {
     		block,
     		id: fallback_block_2.name,
     		type: "fallback",
-    		source: "(325:39)           ",
+    		source: "(355:39)           ",
     		ctx
     	});
 
     	return block;
     }
 
-    // (362:6) {#if autoplayProgressVisible}
+    // (392:6) {#if autoplayProgressVisible}
     function create_if_block_2$1(ctx) {
     	let div;
     	let progress;
@@ -16618,7 +16723,7 @@ var app = (function () {
     			div = element("div");
     			create_component(progress.$$.fragment);
     			attr_dev(div, "class", "sc-carousel-progress__container svelte-h7bw08");
-    			add_location(div, file$3, 362, 8, 9854);
+    			add_location(div, file$3, 392, 8, 10002);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -16649,14 +16754,14 @@ var app = (function () {
     		block,
     		id: create_if_block_2$1.name,
     		type: "if",
-    		source: "(362:6) {#if autoplayProgressVisible}",
+    		source: "(392:6) {#if autoplayProgressVisible}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (368:4) {#if arrows}
+    // (398:4) {#if arrows}
     function create_if_block_1$1(ctx) {
     	let current;
     	const next_slot_template = /*#slots*/ ctx[38].next;
@@ -16689,7 +16794,7 @@ var app = (function () {
     					);
     				}
     			} else {
-    				if (next_slot_or_fallback && next_slot_or_fallback.p && (!current || dirty[0] & /*infinite, originalCurrentPageIndex, originalPagesCount*/ 100)) {
+    				if (next_slot_or_fallback && next_slot_or_fallback.p && (!current || dirty[0] & /*infinite, currentPageIndexWithoutClones, pagesCountWithoutClones*/ 100)) {
     					next_slot_or_fallback.p(ctx, !current ? [-1, -1] : dirty);
     				}
     			}
@@ -16712,14 +16817,14 @@ var app = (function () {
     		block,
     		id: create_if_block_1$1.name,
     		type: "if",
-    		source: "(368:4) {#if arrows}",
+    		source: "(398:4) {#if arrows}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (369:39)           
+    // (399:39)           
     function fallback_block_1(ctx) {
     	let div;
     	let arrow;
@@ -16728,7 +16833,7 @@ var app = (function () {
     	arrow = new Arrow({
     			props: {
     				direction: "next",
-    				disabled: !/*infinite*/ ctx[2] && /*originalCurrentPageIndex*/ ctx[6] === /*originalPagesCount*/ ctx[5] - 1
+    				disabled: !/*infinite*/ ctx[2] && /*currentPageIndexWithoutClones*/ ctx[6] === /*pagesCountWithoutClones*/ ctx[5] - 1
     			},
     			$$inline: true
     		});
@@ -16740,7 +16845,7 @@ var app = (function () {
     			div = element("div");
     			create_component(arrow.$$.fragment);
     			attr_dev(div, "class", "sc-carousel__arrow-container svelte-h7bw08");
-    			add_location(div, file$3, 369, 8, 10055);
+    			add_location(div, file$3, 399, 8, 10203);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
@@ -16749,7 +16854,7 @@ var app = (function () {
     		},
     		p: function update(ctx, dirty) {
     			const arrow_changes = {};
-    			if (dirty[0] & /*infinite, originalCurrentPageIndex, originalPagesCount*/ 100) arrow_changes.disabled = !/*infinite*/ ctx[2] && /*originalCurrentPageIndex*/ ctx[6] === /*originalPagesCount*/ ctx[5] - 1;
+    			if (dirty[0] & /*infinite, currentPageIndexWithoutClones, pagesCountWithoutClones*/ 100) arrow_changes.disabled = !/*infinite*/ ctx[2] && /*currentPageIndexWithoutClones*/ ctx[6] === /*pagesCountWithoutClones*/ ctx[5] - 1;
     			arrow.$set(arrow_changes);
     		},
     		i: function intro(local) {
@@ -16771,14 +16876,14 @@ var app = (function () {
     		block,
     		id: fallback_block_1.name,
     		type: "fallback",
-    		source: "(369:39)           ",
+    		source: "(399:39)           ",
     		ctx
     	});
 
     	return block;
     }
 
-    // (380:2) {#if dots}
+    // (410:2) {#if dots}
     function create_if_block$2(ctx) {
     	let current;
     	const dots_slot_template = /*#slots*/ ctx[38].dots;
@@ -16798,7 +16903,7 @@ var app = (function () {
     		},
     		p: function update(ctx, dirty) {
     			if (dots_slot) {
-    				if (dots_slot.p && (!current || dirty[0] & /*originalCurrentPageIndex, originalPagesCount, loaded*/ 8288 | dirty[1] & /*$$scope*/ 64)) {
+    				if (dots_slot.p && (!current || dirty[0] & /*currentPageIndexWithoutClones, pagesCountWithoutClones, loaded*/ 8288 | dirty[1] & /*$$scope*/ 64)) {
     					update_slot_base(
     						dots_slot,
     						dots_slot_template,
@@ -16811,7 +16916,7 @@ var app = (function () {
     					);
     				}
     			} else {
-    				if (dots_slot_or_fallback && dots_slot_or_fallback.p && (!current || dirty[0] & /*originalPagesCount, originalCurrentPageIndex*/ 96)) {
+    				if (dots_slot_or_fallback && dots_slot_or_fallback.p && (!current || dirty[0] & /*pagesCountWithoutClones, currentPageIndexWithoutClones*/ 96)) {
     					dots_slot_or_fallback.p(ctx, !current ? [-1, -1] : dirty);
     				}
     			}
@@ -16834,22 +16939,22 @@ var app = (function () {
     		block,
     		id: create_if_block$2.name,
     		type: "if",
-    		source: "(380:2) {#if dots}",
+    		source: "(410:2) {#if dots}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (386:5)         
+    // (416:5)         
     function fallback_block(ctx) {
     	let dots_1;
     	let current;
 
     	dots_1 = new Dots({
     			props: {
-    				pagesCount: /*originalPagesCount*/ ctx[5],
-    				currentPageIndex: /*originalCurrentPageIndex*/ ctx[6]
+    				pagesCount: /*pagesCountWithoutClones*/ ctx[5],
+    				currentPageIndex: /*currentPageIndexWithoutClones*/ ctx[6]
     			},
     			$$inline: true
     		});
@@ -16866,8 +16971,8 @@ var app = (function () {
     		},
     		p: function update(ctx, dirty) {
     			const dots_1_changes = {};
-    			if (dirty[0] & /*originalPagesCount*/ 32) dots_1_changes.pagesCount = /*originalPagesCount*/ ctx[5];
-    			if (dirty[0] & /*originalCurrentPageIndex*/ 64) dots_1_changes.currentPageIndex = /*originalCurrentPageIndex*/ ctx[6];
+    			if (dirty[0] & /*pagesCountWithoutClones*/ 32) dots_1_changes.pagesCount = /*pagesCountWithoutClones*/ ctx[5];
+    			if (dirty[0] & /*currentPageIndexWithoutClones*/ 64) dots_1_changes.currentPageIndex = /*currentPageIndexWithoutClones*/ ctx[6];
     			dots_1.$set(dots_1_changes);
     		},
     		i: function intro(local) {
@@ -16888,7 +16993,7 @@ var app = (function () {
     		block,
     		id: fallback_block.name,
     		type: "fallback",
-    		source: "(386:5)         ",
+    		source: "(416:5)         ",
     		ctx
     	});
 
@@ -16934,13 +17039,13 @@ var app = (function () {
     			set_style(div0, "transform", "translateX(" + /*offset*/ ctx[9] + "px)");
     			set_style(div0, "transition-duration", /*_duration*/ ctx[7] + "ms");
     			set_style(div0, "transition-timing-function", /*timingFunction*/ ctx[0]);
-    			add_location(div0, file$3, 344, 6, 9194);
+    			add_location(div0, file$3, 374, 6, 9333);
     			attr_dev(div1, "class", "sc-carousel__pages-window svelte-h7bw08");
-    			add_location(div1, file$3, 334, 4, 8986);
+    			add_location(div1, file$3, 364, 4, 9125);
     			attr_dev(div2, "class", "sc-carousel__content-container svelte-h7bw08");
-    			add_location(div2, file$3, 322, 2, 8616);
+    			add_location(div2, file$3, 352, 2, 8750);
     			attr_dev(div3, "class", "sc-carousel__carousel-container svelte-h7bw08");
-    			add_location(div3, file$3, 321, 0, 8567);
+    			add_location(div3, file$3, 351, 0, 8701);
     		},
     		l: function claim(nodes) {
     			throw new Error_1("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -17037,7 +17142,7 @@ var app = (function () {
     				set_style(div0, "transition-timing-function", /*timingFunction*/ ctx[0]);
     			}
 
-    			if (swipeable_action && is_function(swipeable_action.update) && dirty[0] & /*pageWidth*/ 256) swipeable_action.update.call(null, {
+    			if (swipeable_action && is_function(swipeable_action.update) && dirty[0] & /*pagesWindowWidth*/ 256) swipeable_action.update.call(null, {
     				thresholdProvider: /*swipeable_function*/ ctx[39]
     			});
 
@@ -17152,21 +17257,9 @@ var app = (function () {
     	return block;
     }
 
-    const CLONES_COUNT = 2;
-
-    function getOriginalCurrentPageIndex(currentPageIndex, pagesCount, infinite) {
-    	if (infinite) {
-    		if (currentPageIndex === pagesCount - 1) return 0;
-    		if (currentPageIndex === 0) return pagesCount - CLONES_COUNT - 1;
-    		return currentPageIndex - 1;
-    	}
-
-    	return currentPageIndex;
-    }
-
     function instance$3($$self, $$props, $$invalidate) {
-    	let originalCurrentPageIndex;
-    	let originalPagesCount;
+    	let currentPageIndexWithoutClones;
+    	let pagesCountWithoutClones;
     	let loaded;
     	let { $$slots: slots = {}, $$scope } = $$props;
     	validate_slots('Carousel', slots, ['prev','default','next','dots']);
@@ -17203,7 +17296,7 @@ var app = (function () {
     			throw new Error('pageIndex should be a number');
     		}
 
-    		await showPage(pageIndex + Number(infinite), { animated });
+    		await showPage(pageIndex + oneSideClonesCount, { animated });
     	}
 
     	async function goToPrev(options) {
@@ -17217,12 +17310,27 @@ var app = (function () {
     	}
 
     	let store = createStore();
+    	let oneSideClonesCount = getOneSideClonesCount({ infinite });
     	let currentPageIndex = 0;
     	let pagesCount = 0;
+    	let pagesWindowWidth = 0;
     	let pageWidth = 0;
     	let offset = 0;
     	let pageWindowElement;
-    	let pagesElement;
+
+    	const pageWindowElementResizeObserver = createResizeObserver(({ width }) => {
+    		$$invalidate(8, pagesWindowWidth = width);
+    		pageWidth = width;
+
+    		applyPageSizes({
+    			pagesContainerChildren: pagesContainer.children,
+    			pageWidth
+    		});
+
+    		offsetPage({ animated: false });
+    	});
+
+    	let pagesContainer;
     	let focused = false;
     	let progressValue;
 
@@ -17233,24 +17341,17 @@ var app = (function () {
     			}
     		});
 
-    	function applyPageSizes() {
-    		const children = pagesElement.children;
-    		$$invalidate(8, pageWidth = pageWindowElement.clientWidth);
-    		$$invalidate(35, pagesCount = children.length);
-
-    		for (let pageIndex = 0; pageIndex < pagesCount; pageIndex++) {
-    			children[pageIndex].style.minWidth = `${pageWidth}px`;
-    			children[pageIndex].style.maxWidth = `${pageWidth}px`;
-    		}
-
-    		offsetPage({ animated: false });
-    	}
-
     	function addClones() {
-    		const first = pagesElement.children[0];
-    		const last = pagesElement.children[pagesElement.children.length - 1];
-    		pagesElement.prepend(last.cloneNode(true));
-    		pagesElement.append(first.cloneNode(true));
+    		const { clonesToAppend, clonesToPrepend } = getClones({
+    			oneSideClonesCount,
+    			pagesContainerChildren: pagesContainer.children
+    		});
+
+    		applyClones({
+    			pagesContainer,
+    			clonesToAppend,
+    			clonesToPrepend
+    		});
     	}
 
     	async function applyAutoplayIfNeeded(autoplay) {
@@ -17277,27 +17378,27 @@ var app = (function () {
 
     			cleanupFns.push(() => progressManager.reset());
 
-    			if (pagesElement && pageWindowElement) {
-    				// load first and last child to clone them 
-    				$$invalidate(13, loaded = [0, pagesElement.children.length - 1]);
+    			if (pagesContainer && pageWindowElement) {
+    				// load first and last child to clone them
+    				// TODO: update
+    				$$invalidate(13, loaded = [0, pagesContainer.children.length - 1]);
 
     				await tick();
     				infinite && addClones();
-    				store.init(initialPageIndex + Number(infinite));
-    				applyPageSizes();
+    				$$invalidate(35, pagesCount = pagesContainer.children.length);
+    				store.init(initialPageIndex + oneSideClonesCount);
+    				pageWindowElementResizeObserver.observe(pageWindowElement);
     			}
-
-    			addResizeEventListener(applyPageSizes);
     		})();
     	});
 
     	onDestroy(() => {
-    		removeResizeEventListener(applyPageSizes);
+    		pageWindowElementResizeObserver.disconnect();
     		cleanupFns.filter(fn => fn && typeof fn === 'function').forEach(fn => fn());
     	});
 
     	async function handlePageChange(pageIndex) {
-    		await showPage(pageIndex + Number(infinite));
+    		await showPage(pageIndex + oneSideClonesCount);
     	}
 
     	function offsetPage(options) {
@@ -17324,10 +17425,10 @@ var app = (function () {
 
     		if (infinite) {
     			if (currentPageIndex === 0) {
-    				await showPage(pagesCount - CLONES_COUNT, { animated: false });
+    				await showPage(pagesCount - 2 * oneSideClonesCount, { animated: false });
     				jumped = true;
-    			} else if (currentPageIndex === pagesCount - 1) {
-    				await showPage(1, { animated: false });
+    			} else if (currentPageIndex === pagesCount - oneSideClonesCount) {
+    				await showPage(oneSideClonesCount, { animated: false });
     				jumped = true;
     			}
     		}
@@ -17414,12 +17515,12 @@ var app = (function () {
     		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<Carousel> was created with unknown prop '${key}'`);
     	});
 
-    	const swipeable_function = () => pageWidth / 3;
+    	const swipeable_function = () => pagesWindowWidth / 3;
 
     	function div0_binding($$value) {
     		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
-    			pagesElement = $$value;
-    			$$invalidate(11, pagesElement);
+    			pagesContainer = $$value;
+    			$$invalidate(11, pagesContainer);
     		});
     	}
 
@@ -17462,13 +17563,17 @@ var app = (function () {
     		swipeable,
     		hoverable,
     		tappable,
-    		addResizeEventListener,
-    		removeResizeEventListener,
     		getAdjacentIndexes,
+    		getClones,
+    		applyClones,
+    		applyPageSizes,
+    		getCurrentPageIndexWithoutClones,
+    		getPagesCountWithoutClones,
+    		getOneSideClonesCount,
+    		createResizeObserver,
     		get,
     		ProgressManager,
     		wait,
-    		CLONES_COUNT,
     		dispatch,
     		autoplayDirectionFnDescription,
     		directionFnDescription,
@@ -17489,17 +17594,18 @@ var app = (function () {
     		goToPrev,
     		goToNext,
     		store,
+    		oneSideClonesCount,
     		currentPageIndex,
     		pagesCount,
-    		getOriginalCurrentPageIndex,
+    		pagesWindowWidth,
     		pageWidth,
     		offset,
     		pageWindowElement,
-    		pagesElement,
+    		pageWindowElementResizeObserver,
+    		pagesContainer,
     		focused,
     		progressValue,
     		progressManager,
-    		applyPageSizes,
     		addClones,
     		applyAutoplayIfNeeded,
     		cleanupFns,
@@ -17519,8 +17625,8 @@ var app = (function () {
     		handleHovered,
     		handleTapped,
     		loaded,
-    		originalPagesCount,
-    		originalCurrentPageIndex
+    		pagesCountWithoutClones,
+    		currentPageIndexWithoutClones
     	});
 
     	$$self.$inject_state = $$props => {
@@ -17538,19 +17644,21 @@ var app = (function () {
     		if ('dots' in $$props) $$invalidate(4, dots = $$props.dots);
     		if ('swiping' in $$props) $$invalidate(30, swiping = $$props.swiping);
     		if ('store' in $$props) store = $$props.store;
+    		if ('oneSideClonesCount' in $$props) $$invalidate(49, oneSideClonesCount = $$props.oneSideClonesCount);
     		if ('currentPageIndex' in $$props) $$invalidate(34, currentPageIndex = $$props.currentPageIndex);
     		if ('pagesCount' in $$props) $$invalidate(35, pagesCount = $$props.pagesCount);
-    		if ('pageWidth' in $$props) $$invalidate(8, pageWidth = $$props.pageWidth);
+    		if ('pagesWindowWidth' in $$props) $$invalidate(8, pagesWindowWidth = $$props.pagesWindowWidth);
+    		if ('pageWidth' in $$props) pageWidth = $$props.pageWidth;
     		if ('offset' in $$props) $$invalidate(9, offset = $$props.offset);
     		if ('pageWindowElement' in $$props) $$invalidate(10, pageWindowElement = $$props.pageWindowElement);
-    		if ('pagesElement' in $$props) $$invalidate(11, pagesElement = $$props.pagesElement);
+    		if ('pagesContainer' in $$props) $$invalidate(11, pagesContainer = $$props.pagesContainer);
     		if ('focused' in $$props) $$invalidate(36, focused = $$props.focused);
     		if ('progressValue' in $$props) $$invalidate(12, progressValue = $$props.progressValue);
     		if ('cleanupFns' in $$props) cleanupFns = $$props.cleanupFns;
     		if ('disabled' in $$props) disabled = $$props.disabled;
     		if ('loaded' in $$props) $$invalidate(13, loaded = $$props.loaded);
-    		if ('originalPagesCount' in $$props) $$invalidate(5, originalPagesCount = $$props.originalPagesCount);
-    		if ('originalCurrentPageIndex' in $$props) $$invalidate(6, originalCurrentPageIndex = $$props.originalCurrentPageIndex);
+    		if ('pagesCountWithoutClones' in $$props) $$invalidate(5, pagesCountWithoutClones = $$props.pagesCountWithoutClones);
+    		if ('currentPageIndexWithoutClones' in $$props) $$invalidate(6, currentPageIndexWithoutClones = $$props.currentPageIndexWithoutClones);
     	};
 
     	if ($$props && "$$inject" in $$props) {
@@ -17565,15 +17673,20 @@ var app = (function () {
     		}
 
     		if ($$self.$$.dirty[0] & /*infinite*/ 4 | $$self.$$.dirty[1] & /*currentPageIndex, pagesCount*/ 24) {
-    			$$invalidate(6, originalCurrentPageIndex = getOriginalCurrentPageIndex(currentPageIndex, pagesCount, infinite)); // index without cloenes
+    			$$invalidate(6, currentPageIndexWithoutClones = getCurrentPageIndexWithoutClones({
+    				currentPageIndex,
+    				pagesCount,
+    				oneSideClonesCount,
+    				infinite
+    			}));
     		}
 
-    		if ($$self.$$.dirty[0] & /*originalCurrentPageIndex*/ 64) {
-    			dispatch('pageChange', originalCurrentPageIndex);
+    		if ($$self.$$.dirty[0] & /*currentPageIndexWithoutClones*/ 64) {
+    			dispatch('pageChange', currentPageIndexWithoutClones);
     		}
 
-    		if ($$self.$$.dirty[0] & /*infinite*/ 4 | $$self.$$.dirty[1] & /*pagesCount*/ 16) {
-    			$$invalidate(5, originalPagesCount = Math.max(pagesCount - (infinite ? CLONES_COUNT : 0), 1)); // without clones
+    		if ($$self.$$.dirty[1] & /*pagesCount*/ 16) {
+    			$$invalidate(5, pagesCountWithoutClones = getPagesCountWithoutClones({ pagesCount, oneSideClonesCount }));
     		}
 
     		if ($$self.$$.dirty[0] & /*pauseOnFocus*/ 536870912 | $$self.$$.dirty[1] & /*focused*/ 32) {
@@ -17588,9 +17701,13 @@ var app = (function () {
     			}
     		}
 
-    		if ($$self.$$.dirty[0] & /*originalCurrentPageIndex, originalPagesCount, infinite*/ 100) {
+    		if ($$self.$$.dirty[0] & /*currentPageIndexWithoutClones, pagesCountWithoutClones, infinite*/ 100) {
     			// used for lazy loading images, preloaded only current, adjacent and cloanable images
-    			$$invalidate(13, loaded = getAdjacentIndexes(originalCurrentPageIndex, originalPagesCount, infinite));
+    			$$invalidate(13, loaded = getAdjacentIndexes({
+    				pageIndex: currentPageIndexWithoutClones,
+    				pagesCount: pagesCountWithoutClones,
+    				infinite
+    			}));
     		}
     	};
 
@@ -17600,13 +17717,13 @@ var app = (function () {
     		infinite,
     		autoplayProgressVisible,
     		dots,
-    		originalPagesCount,
-    		originalCurrentPageIndex,
+    		pagesCountWithoutClones,
+    		currentPageIndexWithoutClones,
     		_duration,
-    		pageWidth,
+    		pagesWindowWidth,
     		offset,
     		pageWindowElement,
-    		pagesElement,
+    		pagesContainer,
     		progressValue,
     		loaded,
     		handlePageChange,
@@ -17802,17 +17919,15 @@ var app = (function () {
     }
 
     /* src\InfoPanel.svelte generated by Svelte v3.41.0 */
-
-    const { console: console_1 } = globals;
     const file$2 = "src\\InfoPanel.svelte";
 
     function get_each_context(ctx, list, i) {
     	const child_ctx = ctx.slice();
-    	child_ctx[5] = list[i];
+    	child_ctx[4] = list[i];
     	return child_ctx;
     }
 
-    // (105:4) {:else}
+    // (117:4) {:else}
     function create_else_block_1(ctx) {
     	let div0;
     	let span0;
@@ -17852,23 +17967,23 @@ var app = (function () {
     			span2.textContent = "NYC Green Relief & Recovery Fund.";
     			t9 = text(".");
     			attr_dev(span0, "id", "pane-title");
-    			add_location(span0, file$2, 107, 12, 4383);
+    			add_location(span0, file$2, 119, 12, 4541);
     			attr_dev(div0, "class", "info-title");
-    			add_location(div0, file$2, 106, 8, 4345);
-    			add_location(br0, file$2, 112, 12, 4822);
-    			add_location(br1, file$2, 112, 16, 4826);
+    			add_location(div0, file$2, 118, 8, 4503);
+    			add_location(br0, file$2, 124, 12, 4980);
+    			add_location(br1, file$2, 124, 16, 4984);
     			attr_dev(a, "href", "https://commons.pratt.edu/savi/");
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$2, 112, 78, 4888);
+    			add_location(a, file$2, 124, 78, 5046);
     			set_style(span1, "color", "var(--parkColor)");
     			set_style(span1, "font-weight", "bold");
-    			add_location(span1, file$2, 112, 277, 5087);
+    			add_location(span1, file$2, 124, 277, 5245);
     			set_style(span2, "color", "var(--parkColor)");
     			set_style(span2, "font-weight", "bold");
-    			add_location(span2, file$2, 112, 368, 5178);
-    			add_location(p, file$2, 111, 12, 4496);
+    			add_location(span2, file$2, 124, 368, 5336);
+    			add_location(p, file$2, 123, 12, 4654);
     			attr_dev(div1, "class", "info-container");
-    			add_location(div1, file$2, 110, 8, 4454);
+    			add_location(div1, file$2, 122, 8, 4612);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
@@ -17901,24 +18016,22 @@ var app = (function () {
     		block,
     		id: create_else_block_1.name,
     		type: "else",
-    		source: "(105:4) {:else}",
+    		source: "(117:4) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (67:4) {#if active_data}
+    // (77:4) {#if active_data}
     function create_if_block$1(ctx) {
     	let div0;
     	let span0;
     	let t0_value = /*active_data*/ ctx[0][0].properties['Text-Name'] + "";
     	let t0;
     	let t1;
-    	let div1;
-    	let carousel;
     	let t2;
-    	let div2;
+    	let div1;
     	let p0;
     	let span1;
     	let t3_value = /*active_data*/ ctx[0][0].properties['Text-Acres'] + "";
@@ -17932,30 +18045,7 @@ var app = (function () {
     	let t7;
     	let t8;
     	let current;
-
-    	carousel = new Carousel({
-    			props: {
-    				$$slots: {
-    					next: [
-    						create_next_slot,
-    						({ showPrevPage, showNextPage }) => ({ 3: showPrevPage, 4: showNextPage }),
-    						({ showPrevPage, showNextPage }) => (showPrevPage ? 8 : 0) | (showNextPage ? 16 : 0)
-    					],
-    					prev: [
-    						create_prev_slot,
-    						({ showPrevPage, showNextPage }) => ({ 3: showPrevPage, 4: showNextPage }),
-    						({ showPrevPage, showNextPage }) => (showPrevPage ? 8 : 0) | (showNextPage ? 16 : 0)
-    					],
-    					default: [
-    						create_default_slot$1,
-    						({ showPrevPage, showNextPage }) => ({ 3: showPrevPage, 4: showNextPage }),
-    						({ showPrevPage, showNextPage }) => (showPrevPage ? 8 : 0) | (showNextPage ? 16 : 0)
-    					]
-    				},
-    				$$scope: { ctx }
-    			},
-    			$$inline: true
-    		});
+    	let if_block0 = /*active_photos*/ ctx[1] && create_if_block_4(ctx);
 
     	function select_block_type_1(ctx, dirty) {
     		if (/*active_data*/ ctx[0][0].properties['Text-Copy']) return create_if_block_3;
@@ -17963,9 +18053,9 @@ var app = (function () {
     	}
 
     	let current_block_type = select_block_type_1(ctx);
-    	let if_block0 = current_block_type(ctx);
-    	let if_block1 = /*active_data*/ ctx[0][0].properties['Text_Web'] && create_if_block_2(ctx);
-    	let if_block2 = /*active_photos*/ ctx[1] && create_if_block_1(ctx);
+    	let if_block1 = current_block_type(ctx);
+    	let if_block2 = /*active_data*/ ctx[0][0].properties['Text_Web'] && create_if_block_2(ctx);
+    	let if_block3 = /*active_photos*/ ctx[1] && create_if_block_1(ctx);
 
     	const block = {
     		c: function create() {
@@ -17973,10 +18063,9 @@ var app = (function () {
     			span0 = element("span");
     			t0 = text(t0_value);
     			t1 = space();
-    			div1 = element("div");
-    			create_component(carousel.$$.fragment);
+    			if (if_block0) if_block0.c();
     			t2 = space();
-    			div2 = element("div");
+    			div1 = element("div");
     			p0 = element("p");
     			span1 = element("span");
     			t3 = text(t3_value);
@@ -17985,119 +18074,132 @@ var app = (function () {
     			span2 = element("span");
     			t5 = text(t5_value);
     			t6 = space();
-    			if_block0.c();
+    			if_block1.c();
     			t7 = space();
-    			if (if_block1) if_block1.c();
-    			t8 = space();
     			if (if_block2) if_block2.c();
+    			t8 = space();
+    			if (if_block3) if_block3.c();
     			attr_dev(span0, "id", "pane-title");
-    			add_location(span0, file$2, 69, 12, 2537);
+    			add_location(span0, file$2, 79, 12, 2768);
     			attr_dev(div0, "class", "info-title");
-    			add_location(div0, file$2, 68, 8, 2499);
-    			attr_dev(div1, "class", "photo-container");
-    			add_location(div1, file$2, 72, 8, 2643);
+    			add_location(div0, file$2, 78, 8, 2730);
     			attr_dev(span1, "id", "info-title");
-    			add_location(span1, file$2, 84, 15, 3281);
-    			add_location(p0, file$2, 84, 12, 3278);
+    			add_location(span1, file$2, 96, 15, 3439);
+    			add_location(p0, file$2, 96, 12, 3436);
     			attr_dev(span2, "id", "info-title");
-    			add_location(span2, file$2, 85, 15, 3373);
-    			add_location(p1, file$2, 85, 12, 3370);
-    			attr_dev(div2, "class", "info-container");
-    			add_location(div2, file$2, 82, 8, 3234);
+    			add_location(span2, file$2, 97, 15, 3531);
+    			add_location(p1, file$2, 97, 12, 3528);
+    			attr_dev(div1, "class", "info-container");
+    			add_location(div1, file$2, 94, 8, 3392);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div0, anchor);
     			append_dev(div0, span0);
     			append_dev(span0, t0);
     			insert_dev(target, t1, anchor);
-    			insert_dev(target, div1, anchor);
-    			mount_component(carousel, div1, null);
+    			if (if_block0) if_block0.m(target, anchor);
     			insert_dev(target, t2, anchor);
-    			insert_dev(target, div2, anchor);
-    			append_dev(div2, p0);
+    			insert_dev(target, div1, anchor);
+    			append_dev(div1, p0);
     			append_dev(p0, span1);
     			append_dev(span1, t3);
-    			append_dev(div2, t4);
-    			append_dev(div2, p1);
+    			append_dev(div1, t4);
+    			append_dev(div1, p1);
     			append_dev(p1, span2);
     			append_dev(span2, t5);
-    			append_dev(div2, t6);
-    			if_block0.m(div2, null);
-    			append_dev(div2, t7);
-    			if (if_block1) if_block1.m(div2, null);
-    			append_dev(div2, t8);
-    			if (if_block2) if_block2.m(div2, null);
+    			append_dev(div1, t6);
+    			if_block1.m(div1, null);
+    			append_dev(div1, t7);
+    			if (if_block2) if_block2.m(div1, null);
+    			append_dev(div1, t8);
+    			if (if_block3) if_block3.m(div1, null);
     			current = true;
     		},
     		p: function update(ctx, dirty) {
     			if ((!current || dirty & /*active_data*/ 1) && t0_value !== (t0_value = /*active_data*/ ctx[0][0].properties['Text-Name'] + "")) set_data_dev(t0, t0_value);
-    			const carousel_changes = {};
 
-    			if (dirty & /*$$scope, showNextPage, showPrevPage, active_photos*/ 282) {
-    				carousel_changes.$$scope = { dirty, ctx };
+    			if (/*active_photos*/ ctx[1]) {
+    				if (if_block0) {
+    					if_block0.p(ctx, dirty);
+
+    					if (dirty & /*active_photos*/ 2) {
+    						transition_in(if_block0, 1);
+    					}
+    				} else {
+    					if_block0 = create_if_block_4(ctx);
+    					if_block0.c();
+    					transition_in(if_block0, 1);
+    					if_block0.m(t2.parentNode, t2);
+    				}
+    			} else if (if_block0) {
+    				group_outros();
+
+    				transition_out(if_block0, 1, 1, () => {
+    					if_block0 = null;
+    				});
+
+    				check_outros();
     			}
 
-    			carousel.$set(carousel_changes);
     			if ((!current || dirty & /*active_data*/ 1) && t3_value !== (t3_value = /*active_data*/ ctx[0][0].properties['Text-Acres'] + "")) set_data_dev(t3, t3_value);
     			if ((!current || dirty & /*active_data*/ 1) && t5_value !== (t5_value = /*active_data*/ ctx[0][0].properties['Text-Address'] + "")) set_data_dev(t5, t5_value);
 
-    			if (current_block_type === (current_block_type = select_block_type_1(ctx)) && if_block0) {
-    				if_block0.p(ctx, dirty);
+    			if (current_block_type === (current_block_type = select_block_type_1(ctx)) && if_block1) {
+    				if_block1.p(ctx, dirty);
     			} else {
-    				if_block0.d(1);
-    				if_block0 = current_block_type(ctx);
+    				if_block1.d(1);
+    				if_block1 = current_block_type(ctx);
 
-    				if (if_block0) {
-    					if_block0.c();
-    					if_block0.m(div2, t7);
+    				if (if_block1) {
+    					if_block1.c();
+    					if_block1.m(div1, t7);
     				}
     			}
 
     			if (/*active_data*/ ctx[0][0].properties['Text_Web']) {
-    				if (if_block1) {
-    					if_block1.p(ctx, dirty);
-    				} else {
-    					if_block1 = create_if_block_2(ctx);
-    					if_block1.c();
-    					if_block1.m(div2, t8);
-    				}
-    			} else if (if_block1) {
-    				if_block1.d(1);
-    				if_block1 = null;
-    			}
-
-    			if (/*active_photos*/ ctx[1]) {
     				if (if_block2) {
     					if_block2.p(ctx, dirty);
     				} else {
-    					if_block2 = create_if_block_1(ctx);
+    					if_block2 = create_if_block_2(ctx);
     					if_block2.c();
-    					if_block2.m(div2, null);
+    					if_block2.m(div1, t8);
     				}
     			} else if (if_block2) {
     				if_block2.d(1);
     				if_block2 = null;
     			}
+
+    			if (/*active_photos*/ ctx[1]) {
+    				if (if_block3) {
+    					if_block3.p(ctx, dirty);
+    				} else {
+    					if_block3 = create_if_block_1(ctx);
+    					if_block3.c();
+    					if_block3.m(div1, null);
+    				}
+    			} else if (if_block3) {
+    				if_block3.d(1);
+    				if_block3 = null;
+    			}
     		},
     		i: function intro(local) {
     			if (current) return;
-    			transition_in(carousel.$$.fragment, local);
+    			transition_in(if_block0);
     			current = true;
     		},
     		o: function outro(local) {
-    			transition_out(carousel.$$.fragment, local);
+    			transition_out(if_block0);
     			current = false;
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div0);
     			if (detaching) detach_dev(t1);
-    			if (detaching) detach_dev(div1);
-    			destroy_component(carousel);
+    			if (if_block0) if_block0.d(detaching);
     			if (detaching) detach_dev(t2);
-    			if (detaching) detach_dev(div2);
-    			if_block0.d();
-    			if (if_block1) if_block1.d();
+    			if (detaching) detach_dev(div1);
+    			if_block1.d();
     			if (if_block2) if_block2.d();
+    			if (if_block3) if_block3.d();
     		}
     	};
 
@@ -18105,14 +18207,70 @@ var app = (function () {
     		block,
     		id: create_if_block$1.name,
     		type: "if",
-    		source: "(67:4) {#if active_data}",
+    		source: "(77:4) {#if active_data}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (76:20) {#each active_photos as photo }
+    // (83:8) {#if active_photos}
+    function create_if_block_4(ctx) {
+    	let previous_key = /*active_photos*/ ctx[1];
+    	let key_block_anchor;
+    	let current;
+    	let key_block = create_key_block(ctx);
+
+    	const block = {
+    		c: function create() {
+    			key_block.c();
+    			key_block_anchor = empty();
+    		},
+    		m: function mount(target, anchor) {
+    			key_block.m(target, anchor);
+    			insert_dev(target, key_block_anchor, anchor);
+    			current = true;
+    		},
+    		p: function update(ctx, dirty) {
+    			if (dirty & /*active_photos*/ 2 && safe_not_equal(previous_key, previous_key = /*active_photos*/ ctx[1])) {
+    				group_outros();
+    				transition_out(key_block, 1, 1, noop);
+    				check_outros();
+    				key_block = create_key_block(ctx);
+    				key_block.c();
+    				transition_in(key_block);
+    				key_block.m(key_block_anchor.parentNode, key_block_anchor);
+    			} else {
+    				key_block.p(ctx, dirty);
+    			}
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(key_block);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(key_block);
+    			current = false;
+    		},
+    		d: function destroy(detaching) {
+    			if (detaching) detach_dev(key_block_anchor);
+    			key_block.d(detaching);
+    		}
+    	};
+
+    	dispatch_dev("SvelteRegisterBlock", {
+    		block,
+    		id: create_if_block_4.name,
+    		type: "if",
+    		source: "(83:8) {#if active_photos}",
+    		ctx
+    	});
+
+    	return block;
+    }
+
+    // (87:28) {#each active_photos as photo }
     function create_each_block(ctx) {
     	let img;
     	let img_src_value;
@@ -18120,15 +18278,16 @@ var app = (function () {
     	const block = {
     		c: function create() {
     			img = element("img");
+    			attr_dev(img, "class", "container-photos");
     			attr_dev(img, "alt", "test");
-    			if (!src_url_equal(img.src, img_src_value = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/" + /*photo*/ ctx[5].site + "/" + /*photo*/ ctx[5].photo + ".jpg")) attr_dev(img, "src", img_src_value);
-    			add_location(img, file$2, 76, 24, 2920);
+    			if (!src_url_equal(img.src, img_src_value = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/" + /*photo*/ ctx[4].site + "/" + /*photo*/ ctx[4].photo + ".jpg")) attr_dev(img, "src", img_src_value);
+    			add_location(img, file$2, 87, 32, 3103);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, img, anchor);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*active_photos*/ 2 && !src_url_equal(img.src, img_src_value = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/" + /*photo*/ ctx[5].site + "/" + /*photo*/ ctx[5].photo + ".jpg")) {
+    			if (dirty & /*active_photos*/ 2 && !src_url_equal(img.src, img_src_value = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/" + /*photo*/ ctx[4].site + "/" + /*photo*/ ctx[4].photo + ".jpg")) {
     				attr_dev(img, "src", img_src_value);
     			}
     		},
@@ -18141,14 +18300,14 @@ var app = (function () {
     		block,
     		id: create_each_block.name,
     		type: "each",
-    		source: "(76:20) {#each active_photos as photo }",
+    		source: "(87:28) {#each active_photos as photo }",
     		ctx
     	});
 
     	return block;
     }
 
-    // (74:12) <Carousel let:showPrevPage let:showNextPage >
+    // (86:20) <Carousel>
     function create_default_slot$1(ctx) {
     	let each_1_anchor;
     	let each_value = /*active_photos*/ ctx[1];
@@ -18209,138 +18368,87 @@ var app = (function () {
     		block,
     		id: create_default_slot$1.name,
     		type: "slot",
-    		source: "(74:12) <Carousel let:showPrevPage let:showNextPage >",
+    		source: "(86:20) <Carousel>",
     		ctx
     	});
 
     	return block;
     }
 
-    // (75:16) 
-    function create_prev_slot(ctx) {
+    // (84:12) {#key active_photos}
+    function create_key_block(ctx) {
     	let div;
-    	let i;
-    	let mounted;
-    	let dispose;
+    	let carousel;
+    	let current;
+
+    	carousel = new Carousel({
+    			props: {
+    				$$slots: { default: [create_default_slot$1] },
+    				$$scope: { ctx }
+    			},
+    			$$inline: true
+    		});
 
     	const block = {
     		c: function create() {
     			div = element("div");
-    			i = element("i");
-    			add_location(i, file$2, 74, 96, 2829);
-    			attr_dev(div, "slot", "prev");
-    			attr_dev(div, "class", "custom-arrow custom-arrow-prev");
-    			add_location(div, file$2, 74, 16, 2749);
+    			create_component(carousel.$$.fragment);
+    			attr_dev(div, "class", "photo-container");
+    			add_location(div, file$2, 84, 16, 2945);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, div, anchor);
-    			append_dev(div, i);
-
-    			if (!mounted) {
-    				dispose = listen_dev(
-    					div,
-    					"click",
-    					function () {
-    						if (is_function(/*showPrevPage*/ ctx[3])) /*showPrevPage*/ ctx[3].apply(this, arguments);
-    					},
-    					false,
-    					false,
-    					false
-    				);
-
-    				mounted = true;
-    			}
+    			mount_component(carousel, div, null);
+    			current = true;
     		},
-    		p: function update(new_ctx, dirty) {
-    			ctx = new_ctx;
+    		p: function update(ctx, dirty) {
+    			const carousel_changes = {};
+
+    			if (dirty & /*$$scope, active_photos*/ 130) {
+    				carousel_changes.$$scope = { dirty, ctx };
+    			}
+
+    			carousel.$set(carousel_changes);
+    		},
+    		i: function intro(local) {
+    			if (current) return;
+    			transition_in(carousel.$$.fragment, local);
+    			current = true;
+    		},
+    		o: function outro(local) {
+    			transition_out(carousel.$$.fragment, local);
+    			current = false;
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(div);
-    			mounted = false;
-    			dispose();
+    			destroy_component(carousel);
     		}
     	};
 
     	dispatch_dev("SvelteRegisterBlock", {
     		block,
-    		id: create_prev_slot.name,
-    		type: "slot",
-    		source: "(75:16) ",
+    		id: create_key_block.name,
+    		type: "key",
+    		source: "(84:12) {#key active_photos}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (79:16) 
-    function create_next_slot(ctx) {
-    	let div;
-    	let i;
-    	let mounted;
-    	let dispose;
-
-    	const block = {
-    		c: function create() {
-    			div = element("div");
-    			i = element("i");
-    			add_location(i, file$2, 78, 96, 3170);
-    			attr_dev(div, "slot", "next");
-    			attr_dev(div, "class", "custom-arrow custom-arrow-next");
-    			add_location(div, file$2, 78, 16, 3090);
-    		},
-    		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
-    			append_dev(div, i);
-
-    			if (!mounted) {
-    				dispose = listen_dev(
-    					div,
-    					"click",
-    					function () {
-    						if (is_function(/*showNextPage*/ ctx[4])) /*showNextPage*/ ctx[4].apply(this, arguments);
-    					},
-    					false,
-    					false,
-    					false
-    				);
-
-    				mounted = true;
-    			}
-    		},
-    		p: function update(new_ctx, dirty) {
-    			ctx = new_ctx;
-    		},
-    		d: function destroy(detaching) {
-    			if (detaching) detach_dev(div);
-    			mounted = false;
-    			dispose();
-    		}
-    	};
-
-    	dispatch_dev("SvelteRegisterBlock", {
-    		block,
-    		id: create_next_slot.name,
-    		type: "slot",
-    		source: "(79:16) ",
-    		ctx
-    	});
-
-    	return block;
-    }
-
-    // (90:12) {:else}
+    // (102:12) {:else}
     function create_else_block$1(ctx) {
     	let p0;
     	let strong0;
     	let span0;
-    	let t1_value = /*active_data*/ ctx[0][0].properties['Text_Status'] + "";
+    	let t1_value = /*active_data*/ ctx[0][0].properties['Text_History'] + "";
     	let t1;
     	let t2;
     	let p1;
     	let strong1;
     	let t4;
     	let span1;
-    	let t5_value = /*active_data*/ ctx[0][0].properties['Text_History'] + "";
+    	let t5_value = /*active_data*/ ctx[0][0].properties['Text_Status'] + "";
     	let t5;
 
     	const block = {
@@ -18357,14 +18465,14 @@ var app = (function () {
     			t4 = space();
     			span1 = element("span");
     			t5 = text(t5_value);
-    			add_location(strong0, file$2, 90, 19, 3647);
+    			add_location(strong0, file$2, 102, 19, 3805);
     			attr_dev(span0, "id", "info-title");
-    			add_location(span0, file$2, 90, 44, 3672);
-    			add_location(p0, file$2, 90, 16, 3644);
-    			add_location(strong1, file$2, 91, 19, 3769);
+    			add_location(span0, file$2, 102, 44, 3830);
+    			add_location(p0, file$2, 102, 16, 3802);
+    			add_location(strong1, file$2, 103, 19, 3928);
     			attr_dev(span1, "id", "info-title");
-    			add_location(span1, file$2, 91, 46, 3796);
-    			add_location(p1, file$2, 91, 16, 3766);
+    			add_location(span1, file$2, 103, 46, 3955);
+    			add_location(p1, file$2, 103, 16, 3925);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p0, anchor);
@@ -18379,8 +18487,8 @@ var app = (function () {
     			append_dev(span1, t5);
     		},
     		p: function update(ctx, dirty) {
-    			if (dirty & /*active_data*/ 1 && t1_value !== (t1_value = /*active_data*/ ctx[0][0].properties['Text_Status'] + "")) set_data_dev(t1, t1_value);
-    			if (dirty & /*active_data*/ 1 && t5_value !== (t5_value = /*active_data*/ ctx[0][0].properties['Text_History'] + "")) set_data_dev(t5, t5_value);
+    			if (dirty & /*active_data*/ 1 && t1_value !== (t1_value = /*active_data*/ ctx[0][0].properties['Text_History'] + "")) set_data_dev(t1, t1_value);
+    			if (dirty & /*active_data*/ 1 && t5_value !== (t5_value = /*active_data*/ ctx[0][0].properties['Text_Status'] + "")) set_data_dev(t5, t5_value);
     		},
     		d: function destroy(detaching) {
     			if (detaching) detach_dev(p0);
@@ -18393,14 +18501,14 @@ var app = (function () {
     		block,
     		id: create_else_block$1.name,
     		type: "else",
-    		source: "(90:12) {:else}",
+    		source: "(102:12) {:else}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (88:12) {#if active_data[0].properties['Text-Copy']}
+    // (100:12) {#if active_data[0].properties['Text-Copy']}
     function create_if_block_3(ctx) {
     	let p;
     	let span;
@@ -18413,8 +18521,8 @@ var app = (function () {
     			span = element("span");
     			t = text(t_value);
     			attr_dev(span, "id", "info-title");
-    			add_location(span, file$2, 88, 19, 3531);
-    			add_location(p, file$2, 88, 16, 3528);
+    			add_location(span, file$2, 100, 19, 3689);
+    			add_location(p, file$2, 100, 16, 3686);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -18433,14 +18541,14 @@ var app = (function () {
     		block,
     		id: create_if_block_3.name,
     		type: "if",
-    		source: "(88:12) {#if active_data[0].properties['Text-Copy']}",
+    		source: "(100:12) {#if active_data[0].properties['Text-Copy']}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (95:12) {#if active_data[0].properties['Text_Web']}
+    // (107:12) {#if active_data[0].properties['Text_Web']}
     function create_if_block_2(ctx) {
     	let p;
     	let strong;
@@ -18458,13 +18566,13 @@ var app = (function () {
     			span = element("span");
     			a = element("a");
     			t1 = text(t1_value);
-    			add_location(strong, file$2, 95, 19, 3972);
+    			add_location(strong, file$2, 107, 19, 4130);
     			attr_dev(a, "href", a_href_value = /*active_data*/ ctx[0][0].properties['Text_Web']);
     			attr_dev(a, "target", "_blank");
-    			add_location(a, file$2, 95, 68, 4021);
+    			add_location(a, file$2, 107, 68, 4179);
     			attr_dev(span, "id", "info-title");
-    			add_location(span, file$2, 95, 45, 3998);
-    			add_location(p, file$2, 95, 16, 3969);
+    			add_location(span, file$2, 107, 45, 4156);
+    			add_location(p, file$2, 107, 16, 4127);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -18489,14 +18597,14 @@ var app = (function () {
     		block,
     		id: create_if_block_2.name,
     		type: "if",
-    		source: "(95:12) {#if active_data[0].properties['Text_Web']}",
+    		source: "(107:12) {#if active_data[0].properties['Text_Web']}",
     		ctx
     	});
 
     	return block;
     }
 
-    // (99:12) {#if active_photos}
+    // (111:12) {#if active_photos}
     function create_if_block_1(ctx) {
     	let p;
     	let t0;
@@ -18509,7 +18617,7 @@ var app = (function () {
     			t0 = text("Photo Credits: ");
     			t1 = text(t1_value);
     			attr_dev(p, "class", "photo-credit");
-    			add_location(p, file$2, 99, 16, 4211);
+    			add_location(p, file$2, 111, 16, 4369);
     		},
     		m: function mount(target, anchor) {
     			insert_dev(target, p, anchor);
@@ -18528,7 +18636,7 @@ var app = (function () {
     		block,
     		id: create_if_block_1.name,
     		type: "if",
-    		source: "(99:12) {#if active_photos}",
+    		source: "(111:12) {#if active_photos}",
     		ctx
     	});
 
@@ -18556,7 +18664,7 @@ var app = (function () {
     			div = element("div");
     			if_block.c();
     			attr_dev(div, "class", "right-content");
-    			add_location(div, file$2, 64, 0, 2435);
+    			add_location(div, file$2, 74, 0, 2666);
     		},
     		l: function claim(nodes) {
     			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
@@ -18626,8 +18734,7 @@ var app = (function () {
     		a.push(d.credit);
     	});
 
-    	a = [...new Set(a)];
-    	console.log(a.join(', '));
+    	a = [...new Set(a)]; // Remove Duplicates
     	return a.join(', ');
     }
 
@@ -18751,20 +18858,27 @@ var app = (function () {
     	];
 
     	let active_photos = [];
+    	let pageCount = 0;
 
     	afterUpdate(() => {
     		//Filter photos to active data
     		if (active_data) {
+    			//active_photos = null;
     			$$invalidate(1, active_photos = photos.filter(function (photo) {
     				return photo.site === active_data[0].properties.BBL;
     			}));
+
+    			//Scroll to top on active data change. 
+    			let element = document.getElementsByClassName("right-panel")[0];
+
+    			element.scrollTop = 0;
     		}
     	});
 
     	const writable_props = ['active_data'];
 
     	Object.keys($$props).forEach(key => {
-    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console_1.warn(`<InfoPanel> was created with unknown prop '${key}'`);
+    		if (!~writable_props.indexOf(key) && key.slice(0, 2) !== '$$' && key !== 'slot') console.warn(`<InfoPanel> was created with unknown prop '${key}'`);
     	});
 
     	$$self.$$set = $$props => {
@@ -18772,18 +18886,22 @@ var app = (function () {
     	};
 
     	$$self.$capture_state = () => ({
+    		beforeUpdate,
     		afterUpdate,
+    		tick,
     		Carousel,
     		active_data,
     		photos,
     		active_photos,
-    		getCredits
+    		getCredits,
+    		pageCount
     	});
 
     	$$self.$inject_state = $$props => {
     		if ('active_data' in $$props) $$invalidate(0, active_data = $$props.active_data);
     		if ('photos' in $$props) photos = $$props.photos;
     		if ('active_photos' in $$props) $$invalidate(1, active_photos = $$props.active_photos);
+    		if ('pageCount' in $$props) pageCount = $$props.pageCount;
     	};
 
     	if ($$props && "$$inject" in $$props) {
@@ -18809,7 +18927,7 @@ var app = (function () {
     		const props = options.props || {};
 
     		if (/*active_data*/ ctx[0] === undefined && !('active_data' in props)) {
-    			console_1.warn("<InfoPanel> was created without expected prop 'active_data'");
+    			console.warn("<InfoPanel> was created without expected prop 'active_data'");
     		}
     	}
 

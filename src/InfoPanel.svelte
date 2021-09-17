@@ -1,6 +1,6 @@
 
 <script>
-    import {afterUpdate} from "svelte";
+    import {beforeUpdate, afterUpdate, tick} from "svelte";
     import Carousel from 'svelte-carousel'
     export let active_data;
 
@@ -44,17 +44,27 @@
         data.forEach(function(d){
             a.push(d.credit)
         })
-        a = [...new Set(a)];
-        console.log( a.join(', ') )
+        a = [...new Set(a)]; // Remove Duplicates
         return a.join(', ');
     }
 
+
+    let pageCount = 0
     afterUpdate(() => {
         //Filter photos to active data
 		if (active_data){
+
+            //active_photos = null;
+
             active_photos = photos.filter(function(photo){
                 return photo.site === active_data[0].properties.BBL;
             })
+
+
+        //Scroll to top on active data change. 
+        let element = document.getElementsByClassName("right-panel")[0];
+        element.scrollTop = 0;
+
         }
 	});
 
@@ -70,15 +80,17 @@
             <span id='pane-title' >{active_data[0].properties['Text-Name']}</span>
         </div>
         
-        <div class="photo-container">
-            <Carousel let:showPrevPage let:showNextPage >
-                <div slot="prev" on:click={showPrevPage} class="custom-arrow custom-arrow-prev"><i/></div>
-                    {#each active_photos as photo }  
-                        <img alt="test" src= "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/{photo.site}/{photo.photo}.jpg" />  
-                    {/each}
-                <div slot="next" on:click={showNextPage} class="custom-arrow custom-arrow-next"><i /></div>
-            </Carousel>
-        </div>
+        {#if active_photos}
+            {#key active_photos}
+                <div class="photo-container">
+                    <Carousel>
+                            {#each active_photos as photo }  
+                                <img class="container-photos" alt="test" src= "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/{photo.site}/{photo.photo}.jpg" />  
+                            {/each}
+                    </Carousel>
+                </div>
+            {/key}
+        {/if}
 
         <div class="info-container">
 
@@ -88,8 +100,8 @@
             {#if active_data[0].properties['Text-Copy']}
                 <p><span id='info-title' >{active_data[0].properties['Text-Copy']}</span></p>
             {:else}
-                <p><strong>Status: </strong><span id='info-title' >{active_data[0].properties['Text_Status']}</span></p>
-                <p><strong>History: </strong> <span id='info-title' >{active_data[0].properties['Text_History']}</span></p>
+                <p><strong>Status: </strong><span id='info-title' >{active_data[0].properties['Text_History']}</span></p>
+                <p><strong>History: </strong> <span id='info-title' >{active_data[0].properties['Text_Status']}</span></p>
             {/if}
 
             {#if active_data[0].properties['Text_Web']}
