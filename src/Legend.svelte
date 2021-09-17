@@ -42,11 +42,11 @@
 
     .legend{
         position:absolute;
-        bottom: 15px;
+        bottom: 35px;
         left: 15px;
         background:rgba(255,255,255,0.75);
         width: 260px;
-        height: 150px;
+        height: 130px;
         z-index: 2000;
         padding:15px;
         line-height: 12pt;

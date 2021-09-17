@@ -6,6 +6,7 @@
 	import GeoJsonBorder from './GeojsonBorder.svelte';
 	import InfoPanel from './InfoPanel.svelte';
 	import Legend from './Legend.svelte';
+	import ShrunkPanel from './ShrunkPanel.svelte';
 
 	//Retrieve Data from Github Repo
 	const url_lots = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/BIP_FinalLots.geojson";
@@ -32,6 +33,13 @@
 
 	//Handle Clicked Geojson Object, Point or Polygon. Returns active Polygon Object
 	function handleMessage(e){
+
+		//Bring Panel Back
+		if (shrunk){
+			shrunk = !shrunk;
+			document.getElementsByClassName('legend')[0].style.visibility = "hidden";
+		}
+
 		//Get clicked polygons unique ID
 		 let active = e.detail.active;
 		 let obj_id = active._path.id
@@ -48,11 +56,42 @@
 		})
 	}
 
+	let shrunk = false;
 	function handleClick(e){
 		active_data = null;
 		let active = document.getElementsByClassName("active")[0];
 		active.className.baseVal = "leaflet-interactive"
 	}
+
+    function handleShrunk(event){
+		shrunk = !shrunk;
+		if (shrunk == true){
+			document.getElementsByClassName('legend')[0].style.visibility = "visible";
+			document.getElementsByClassName('legend')[0].style.bottom = "74px";
+		} else{
+			document.getElementsByClassName('legend')[0].style.visibility = "hidden";
+		}
+	}
+
+	import ResizeObserver from "svelte-resize-observer";
+	let width;
+	function setShrunk(e){
+		width = e.detail.clientWidth;
+		if (width > 689 ){
+			shrunk = false;
+			document.getElementsByClassName('legend')[0].style.visibility = "visible";
+			document.getElementsByClassName('legend')[0].style.bottom = "15px";
+		}else{
+			if (shrunk == true){
+				document.getElementsByClassName('legend')[0].style.visibility = "visible";
+				document.getElementsByClassName('legend')[0].style.bottom = "75px";
+			} else{
+				document.getElementsByClassName('legend')[0].style.visibility = "hidden";
+			}
+
+		}
+	}
+
 
 </script>
 
@@ -64,6 +103,7 @@
 
 {#if data.border.length > 0 }
 	<div class="two-column">
+		<ResizeObserver on:resize={(e) => setShrunk(e) } />
 		<div class="left-panel">
 			<LeafletMap >
 				<HomeButton on:homebutton={handleClick}/>
@@ -73,9 +113,26 @@
 			</LeafletMap>
 		</div>
 
-		<div class="right-panel">
-			<InfoPanel {active_data}/>
-		</div>
+		{#if shrunk == false}
+			<div class="right-panel">
+
+				<div class="shrink" on:click={handleShrunk}>
+					&#10094;
+				</div>
+
+				<InfoPanel {active_data}/>
+			</div>
+		{:else}
+			<div class="right-panel shrunk">
+				
+				<div class="shrink" on:click={handleShrunk}>
+					&#10094;
+				</div>
+
+				<ShrunkPanel {active_data}/>
+			</div>
+		{/if}
+
 	</div>
 
 {:else}
@@ -93,4 +150,30 @@
 		margin-top: -50px;
 		margin-left: -50px;
 	}
+
+	.right-panel>.shrink{
+		transform: rotate(-90deg);
+	}
+
+	.right-panel.shrunk>.shrink{
+		transform: rotate(90deg);
+	}
+
+	.shrink{
+		position:absolute;
+		right:20px;
+		top:20px;
+		font-family: Arial, Helvetica, sans-serif;
+		font-style: normal;
+		color:#444;
+		font-size:18pt;
+		visibility: hidden;
+		cursor: pointer;
+	}
+
+@media only screen and (max-width: 690px) {
+    .shrink{
+        visibility: visible;
+    }
+}
 </style>

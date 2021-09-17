@@ -1,15 +1,16 @@
 
 <script>
-    import {beforeUpdate, afterUpdate, tick} from "svelte";
+    import {beforeUpdate, afterUpdate} from "svelte";
     import Carousel from 'svelte-carousel'
     export let active_data;
-
+ 
     //List of all photos and BBLS
     let photos = [
         {site:"3022770000",photo:"1",credit:"Friends of Bushwick Inlet Park"},
         {site:"3022770000",photo:"2",credit:"Friends of Bushwick Inlet Park"},
         {site:"3022770000",photo:"3",credit:"Danny Lyon"},
         
+        //50 Kent
         {site:"3022870000",photo:"1",credit:"NYC Dept of Parks & Recreation"},
         {site:"3022870000",photo:"2",credit:"NYC Dept of Parks & Recreation"},
 
@@ -54,8 +55,7 @@
         //Filter photos to active data
 		if (active_data){
 
-            //active_photos = null;
-
+            //Filter photos by active data
             active_photos = photos.filter(function(photo){
                 return photo.site === active_data[0].properties.BBL;
             })
@@ -80,17 +80,31 @@
             <span id='pane-title' >{active_data[0].properties['Text-Name']}</span>
         </div>
         
-        {#if active_photos}
-            {#key active_photos}
-                <div class="photo-container">
-                    <Carousel>
-                            {#each active_photos as photo }  
-                                <img class="container-photos" alt="test" src= "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/{photo.site}/{photo.photo}.jpg" />  
-                            {/each}
-                    </Carousel>
-                </div>
-            {/key}
-        {/if}
+
+        {#key active_photos}
+            <div class="photo-container">
+                
+                <Carousel
+                    let:showPrevPage
+                    let:showNextPage
+                >
+
+                    <div slot="prev" on:click={showPrevPage} class="custom-arrow custom-arrow-prev">
+                        <i>&#10094;<i />
+                    </div>
+
+                    {#each active_photos as photo }  
+                        <img class="container-photos" alt="test" src= "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/{photo.site}/{photo.photo}.jpg" />  
+                    {/each}
+
+                    <div slot="next" on:click={showNextPage} class="custom-arrow custom-arrow-next">
+                        <i>&#10095;<i />
+                    </div>
+
+                </Carousel>
+            </div>
+        {/key}
+
 
         <div class="info-container">
 
@@ -129,3 +143,38 @@
     {/if}
 
 </div>
+
+
+
+<style>
+
+.custom-arrow{
+    font-family: Arial, Helvetica, sans-serif;
+    font-style: normal;
+    color:#222;
+    font-size:18pt;
+    font-weight: 900;
+    width:30px;
+    height:100%;
+    position:absolute;
+    z-index:3;
+    background:rgba(255,255,255,0.15)!important;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.custom-arrow.custom-arrow-next{
+    right:0;
+}
+	
+.custom-arrow.custom-arrow-prev{
+    left:0
+}
+
+i{
+    font-style: normal!important;
+}
+
+</style>
