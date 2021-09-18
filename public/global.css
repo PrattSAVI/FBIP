@@ -110,6 +110,11 @@ p {
     body {
         max-height: 100%!important;
     }
+    .left-panel {
+        height: 100% !important;
+        flex-grow: 1;
+        max-height: 100% !important;
+    }
     .photo-container {
         flex-direction: row;
         order: 3!important;
