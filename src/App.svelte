@@ -8,6 +8,7 @@
 	import Legend from './Legend.svelte';
 	import ShrunkPanel from './ShrunkPanel.svelte';
 
+
 	//Retrieve Data from Github Repo
 	const url_lots = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/BIP_FinalLots.geojson";
 	const url_border = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/BIP_lines_4326.geojson";

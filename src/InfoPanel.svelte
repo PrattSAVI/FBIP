@@ -62,9 +62,23 @@
 
 
         //Scroll to top on active data change. 
-        let element = document.getElementsByClassName("right-panel")[0];
-        element.scrollTop = 0;
 
+        let element = document.getElementsByClassName("right-panel")[0];
+        element.scroll({
+            top:0,
+            behavior:'auto'
+        });
+        
+        //If the scroll did not work, try again. 
+        setTimeout(function(){ 
+            if(element.scrollTop !== 0){
+                element.scroll({
+                    top:0,
+                    behavior:'auto'
+                });
+            }
+            console.log( element.scrollTop )
+         }, 500);
         }
 	});
 
@@ -103,6 +117,7 @@
 
                 </Carousel>
             </div>
+        
         {/key}
 
 
