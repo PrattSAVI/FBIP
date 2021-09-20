@@ -12,6 +12,7 @@ html,
 body {
     font-family: neue-haas-grotesk-text, sans-serif;
     padding: 0px;
+    height: 100%;
 }
 
 body {
@@ -44,16 +45,13 @@ p {
 .left-panel {
     height: 100vh;
     flex-grow: 1;
-    max-height: 100vh;
+    /*max-height: 100vh;*/
 }
 
 .right-content {
     display: flex;
     flex-direction: column;
 }
-
-
-/* Right Panel and Folding */
 
 #pane-title {
     font-family: neue-haas-grotesk-display, sans-serif;
@@ -109,20 +107,14 @@ p {
     body {
         max-height: 100%!important;
     }
-    .left-panel {
-        /*height: 100vh !important;*/
-        flex-grow: 1;
-        max-height: 100vh !important;
-    }
-    .photo-container {
-        flex-direction: row;
-        order: 3!important;
-        width: 400px;
-        height: auto;
-        margin: auto;
-    }
     .two-column {
         flex-direction: column;
+        height: 100%;
+    }
+    .left-panel {
+        height: 100% !important;
+        /*flex-grow: 1;*/
+        /*max-height: 100% !important;*/
     }
     .right-panel {
         width: 100% !important;
@@ -133,6 +125,13 @@ p {
         border-top: 1px solid #999!important;
         border-left: none!important;
         z-index: 2000000!important;
+    }
+    .photo-container {
+        flex-direction: row;
+        order: 3!important;
+        width: 400px;
+        height: auto;
+        margin: auto;
     }
     .right-panel.shrunk {
         height: auto;

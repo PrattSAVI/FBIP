@@ -104,7 +104,6 @@
 
 {#if data.border.length > 0 }
 	<div class="two-column">
-		<ResizeObserver on:resize={(e) => setShrunk(e) } />
 		<div class="left-panel">
 			<LeafletMap >
 				<HomeButton on:homebutton={handleClick}/>
@@ -133,6 +132,8 @@
 				<ShrunkPanel {active_data}/>
 			</div>
 		{/if}
+
+		<ResizeObserver on:resize={(e) => setShrunk(e) } />
 
 	</div>
 
