@@ -113,8 +113,6 @@ p {
     }
     .left-panel {
         height: 100% !important;
-        /*flex-grow: 1;*/
-        /*max-height: 100% !important;*/
     }
     .right-panel {
         width: 100% !important;
@@ -258,5 +256,6 @@ a:visited:active {
 }
 
 .leaflet-touch .leaflet-bar button {
-    line-height: 28px;
+    /*line-height: 30px!important;*/
+    margin: auto !important
 }

@@ -40,6 +40,7 @@
 
     let active_photos = [];
 
+    //Remove credits if they are repeting and convert the list to "," seperated text
     function getCredits(data){
         let a = []
         data.forEach(function(d){
@@ -62,7 +63,6 @@
 
 
         //Scroll to top on active data change. 
-
         let element = document.getElementsByClassName("right-panel")[0];
         element.scroll({
             top:0,

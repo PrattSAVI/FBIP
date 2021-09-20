@@ -11,7 +11,7 @@
         map = value;
     });
 
-    let home = L.easyButton( '<i class="fa fa-home" aria-hidden="true"></i>' , function(btn, map){
+    let home = L.easyButton('<i class="fa fa-home" aria-hidden="true"></i>', function(btn, map){
         map.setView([40.723, -73.961],17);
     });
     

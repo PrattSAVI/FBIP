@@ -1,6 +1,7 @@
 <script>
 	import LeafletMap from './Map.svelte'
 	import HomeButton from './Home.svelte'
+	import LayerButton from './LayerButton.svelte'
 	import {onMount} from 'svelte'
 	import GeoJson from './Geojson.svelte';
 	import GeoJsonBorder from './GeojsonBorder.svelte';
@@ -61,7 +62,9 @@
 	function handleClick(e){
 		active_data = null;
 		let active = document.getElementsByClassName("active")[0];
-		active.className.baseVal = "leaflet-interactive"
+		if (active){
+			active.className.baseVal = "leaflet-interactive"
+		}
 	}
 
     function handleShrunk(event){
@@ -76,8 +79,14 @@
 
 	import ResizeObserver from "svelte-resize-observer";
 	let width;
+	let height;
+	let ratio;
 	function setShrunk(e){
 		width = e.detail.clientWidth;
+		height = e.detail.clientHeight;
+		ratio = width/height;
+		console.log( width,height,ratio );
+
 		if (width > 689 ){
 			shrunk = false;
 			document.getElementsByClassName('legend')[0].style.visibility = "visible";
@@ -90,6 +99,15 @@
 				document.getElementsByClassName('legend')[0].style.visibility = "hidden";
 			}
 
+		}
+
+		//Mobile on Landscape
+		if( (ratio > 1) & (height < 600) ){
+			if (document.getElementsByClassName('legend')[0].style.visibility === 'visible'){
+				console.log("Landscape format, legend closed")
+				document.getElementsByClassName('legend')[0].style.visibility = "hidden";
+			} 
+			
 		}
 	}
 
@@ -107,6 +125,7 @@
 		<div class="left-panel">
 			<LeafletMap >
 				<HomeButton on:homebutton={handleClick}/>
+				<LayerButton />
 				<GeoJson on:message={handleMessage} geojson={data.bip} />
 				<GeoJsonBorder geojson={data.border} />
 				<Legend />
