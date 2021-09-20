@@ -54,6 +54,7 @@
         border-style: solid;
         border-color: rgb(211, 211, 211);
         border-width: 2px;
+        pointer-events: none;
     }
 
     .legend-item{

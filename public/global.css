@@ -51,6 +51,7 @@ p {
 .right-content {
     display: flex;
     flex-direction: column;
+    padding-bottom: 2rem;
 }
 
 #pane-title {
