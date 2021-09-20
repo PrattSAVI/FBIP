@@ -9,7 +9,7 @@
 
     <div class="legend-item" >
         <div class="rect" style="background:var(--parkColor)"></div>
-        <div class="legend-text">Owned and managed by<br> the Parks Department</div>
+        <div class="legend-text">Owned and managed by<br> the NYC Parks Dept.</div>
     </div>
 
     <div class="legend-item" >
