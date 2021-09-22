@@ -58,7 +58,6 @@
 		})
 	}
 
-	let shrunk = false;
 	function handleClick(e){
 		active_data = null;
 		let active = document.getElementsByClassName("active")[0];
@@ -67,11 +66,12 @@
 		}
 	}
 
+	let shrunk = false;
     function handleShrunk(event){
 		shrunk = !shrunk;
 		if (shrunk == true){
 			document.getElementsByClassName('legend')[0].style.visibility = "visible";
-			document.getElementsByClassName('legend')[0].style.bottom = "74px";
+			document.getElementsByClassName('legend')[0].style.bottom = "65px";
 		} else{
 			document.getElementsByClassName('legend')[0].style.visibility = "hidden";
 		}
@@ -85,20 +85,20 @@
 		width = e.detail.clientWidth;
 		height = e.detail.clientHeight;
 		ratio = width/height;
-		console.log( width,height,ratio );
+		console.log( width,height,ratio);
 
 		if (width > 689 ){
 			shrunk = false;
 			document.getElementsByClassName('legend')[0].style.visibility = "visible";
 			document.getElementsByClassName('legend')[0].style.bottom = "15px";
 		}else{
-			if (shrunk == true){
+			//If size is smaller the 689
+			if (shrunk == true){ //and shrunk
 				document.getElementsByClassName('legend')[0].style.visibility = "visible";
-				document.getElementsByClassName('legend')[0].style.bottom = "75px";
+				document.getElementsByClassName('legend')[0].style.bottom = "50px";
 			} else{
 				document.getElementsByClassName('legend')[0].style.visibility = "hidden";
 			}
-
 		}
 
 		//Mobile on Landscape
@@ -132,6 +132,7 @@
 			</LeafletMap>
 		</div>
 
+		<!-- If the shrink button is pressed, show a different panel-->
 		{#if shrunk == false}
 			<div class="right-panel">
 
@@ -183,7 +184,7 @@
 	.shrink{
 		position:absolute;
 		right:20px;
-		top:20px;
+		top:12px;
 		font-family: Arial, Helvetica, sans-serif;
 		font-style: normal;
 		color:#444;

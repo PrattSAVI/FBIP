@@ -40,22 +40,6 @@
         stroke-dasharray: 3em 1em;
     }
 
-    .legend{
-        position:absolute;
-        bottom: 35px;
-        left: 15px;
-        background:rgba(255,255,255,0.75);
-        width: 260px;
-        height: 130px;
-        z-index: 2000;
-        padding:15px;
-        line-height: 12pt;
-        border-radius: 8px;
-        border-style: solid;
-        border-color: rgb(211, 211, 211);
-        border-width: 2px;
-        pointer-events: none;
-    }
 
     .legend-item{
         padding:5px;

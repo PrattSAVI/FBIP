@@ -9,11 +9,11 @@
     });
 
     let momo = 0;
-    let layer = L.easyButton('<i class="fa fa-bars" aria-hidden="true"></i>', function(btn, map){
+    let layer = L.easyButton('<i class="fa fa-ellipsis-v" aria-hidden="true"></i>', function(btn, map){
         
         momo = momo+1;
         //This button is firing twice. I am ignoring the 2.clicks. 
-        if (momo % 2 === 1){
+        if (momo % 1 === 0){
             let legendstate = document.getElementsByClassName('legend')[0].style.visibility;
             console.log( legendstate);
 

@@ -45,13 +45,11 @@ p {
 .left-panel {
     height: 100vh;
     flex-grow: 1;
-    /*max-height: 100vh;*/
 }
 
 .right-content {
     display: flex;
     flex-direction: column;
-    padding-bottom: 2rem;
 }
 
 #pane-title {
@@ -69,7 +67,7 @@ p {
     font-weight: 400;
     padding: 0px 15px 0px 15px;
     order: 3;
-    padding-bottom: 20px!important;
+    padding-bottom: 3rem!important;
 }
 
 .info-container>p {
@@ -102,6 +100,23 @@ p {
     height: auto;
     max-height: 200px;
     object-fit: cover;
+}
+
+.legend {
+    position: absolute;
+    bottom: 35px;
+    left: 15px;
+    background: rgba(255, 255, 255, 0.75);
+    width: 260px;
+    height: 130px;
+    z-index: 2000;
+    padding: 15px;
+    line-height: 12pt;
+    border-radius: 8px;
+    border-style: solid;
+    border-color: rgb(211, 211, 211);
+    border-width: 2px;
+    pointer-events: none;
 }
 
 @media only screen and (max-width: 690px) {
@@ -143,6 +158,14 @@ p {
     }
     .info-container {
         order: 2!important;
+    }
+    .info-title {
+        margin-top: 8px;
+        margin-bottom: 8px;
+    }
+    .legend {
+        left: auto;
+        right: 15px;
     }
 }
 
