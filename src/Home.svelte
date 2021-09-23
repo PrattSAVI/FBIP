@@ -16,20 +16,13 @@
         dispatch('homebutton', {
                 text: 'Hello!'
             });
-        console.log('Momo')
-        event.stopPropagation();
+        //console.log('Momo')
+        //event.stopPropagation();
         event.preventDefault();
 
     });
     
-    /*
-    home.button.onclick = function(){
-            console.log('Going back home');
-            dispatch('homebutton', {
-                text: 'Hello!'
-            });
-    }
-    */
+ 
     
     home.addTo(map);
 

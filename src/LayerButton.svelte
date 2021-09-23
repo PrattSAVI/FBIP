@@ -24,7 +24,7 @@
     L.easyButton('<i class="fa fa-ellipsis-v" aria-hidden="true"></i>', (btn,map)=>{
         reverseViz();
         console.log(event)
-        event.stopPropagation();
+        //event.stopPropagation();
         event.preventDefault();
     }  
 
