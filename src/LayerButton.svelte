@@ -10,6 +10,15 @@
 
 
     function reverseViz(){
+
+        
+        if (window.lastClick && new Date().getTime() - window.lastClick < 200) {
+            window.lastClick = null;
+            return;
+        }
+        window.lastClick = new Date().getTime();
+        
+
         let legendstate = document.getElementsByClassName('legend')[0].style.visibility;
         
         if ((legendstate === 'hidden') || ( legendstate.length === 0 )){
