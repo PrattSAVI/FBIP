@@ -16,10 +16,10 @@
     });
     
     home.button.onclick = function(){
-        console.log('Going back home');
-        dispatch('homebutton', {
-			text: 'Hello!'
-		});
+            console.log('Going back home');
+            dispatch('homebutton', {
+                text: 'Hello!'
+            });
     }
     
     home.addTo(map);

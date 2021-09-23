@@ -21,10 +21,9 @@
     }
 
     L.easyButton('<i class="fa fa-ellipsis-v" aria-hidden="true"></i>', (btn,map)=>{
-        if (event.pointerType != 'touch'){
-            reverseViz();
-            event.stopPropagation();
-        }
+        reverseViz();
+        console.log(event)
+        event.stopPropagation();
     }  
 
     ).addTo(map);
