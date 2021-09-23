@@ -3,6 +3,7 @@
 	import HomeButton from './Home.svelte'
 	//import LayerButton from './LayerButton.svelte'
 	import ButtonHome from './Button_Home.svelte'
+	import ButtonLayer from './Button_Layer.svelte'
 	import {onMount} from 'svelte'
 	import GeoJson from './Geojson.svelte';
 	import GeoJsonBorder from './GeojsonBorder.svelte';
@@ -134,6 +135,7 @@
 			<LeafletMap >
 				<!--<HomeButton on:homebutton={handleClick}/>-->
 				<ButtonHome on:homebutton={handleClick}/>
+				<ButtonLayer />
 				<!--<LayerButton />-->
 				<GeoJson on:message={handleMessage} geojson={data.bip} />
 				<GeoJsonBorder geojson={data.border} />
