@@ -12,7 +12,7 @@
     function reverseViz(){
         let legendstate = document.getElementsByClassName('legend')[0].style.visibility;
         
-        if ((legendstate === 'hidden') || ( legendstate.length === 0 ) ){
+        if ((legendstate === 'hidden') || ( legendstate.length === 0 )){
             document.getElementsByClassName('legend')[0].style.visibility = 'visible';
         } else {
             document.getElementsByClassName('legend')[0].style.visibility = 'hidden';
