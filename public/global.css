@@ -269,11 +269,6 @@ a:visited:active {
     color: var(--otherParks);
 }
 
-.symbol-key {
-    height: auto;
-    width: 20px;
-}
-
 .leaflet-bar {
     text-align: center;
 }
@@ -286,8 +281,4 @@ a:visited:active {
     padding: 0px;
     margin: auto;
     text-align: center;
-}
-
-symbol-home {
-    width: 20px;
 }
