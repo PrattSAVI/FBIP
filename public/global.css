@@ -103,6 +103,12 @@ p {
     object-fit: cover;
 }
 
+@media only screen and (max-width: 1000px) {
+    .legend {
+        visibility: hidden;
+    }
+}
+
 @media only screen and (max-width: 690px) {
     html,
     body {
