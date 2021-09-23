@@ -16,8 +16,6 @@
         dispatch('homebutton', {
                 text: 'Hello!'
             });
-        //console.log('Momo')
-        //event.stopPropagation();
         event.preventDefault();
 
     });

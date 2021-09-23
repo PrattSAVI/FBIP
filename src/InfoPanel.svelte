@@ -50,8 +50,7 @@
         return a.join(', ');
     }
 
-
-    let pageCount = 0
+    //filter photos & scrollto top. 
     afterUpdate(() => {
         //Filter photos to active data
 		if (active_data){
@@ -77,7 +76,6 @@
                     behavior:'auto'
                 });
             }
-            console.log( element.scrollTop )
          }, 500);
         }
 	});
