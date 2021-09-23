@@ -278,7 +278,7 @@ a:visited:active {
     height: auto;
     width: 20px;
     line-height: 28px;
-    padding: 0px;
+    padding: auto;
     margin: auto;
     text-align: center;
 }
