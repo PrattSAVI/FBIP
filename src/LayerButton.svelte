@@ -20,7 +20,7 @@
     }
 
     //Add button with function.
-    L.easyButton('<i class="fa fa-ellipsis-v" aria-hidden="true"></i>', (btn,map)=>{
+    L.easyButton('<img class="symbol-key" src="https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/key_icon.svg" >', (btn,map)=>{
         reverseViz();
         event.preventDefault();
     }  
@@ -29,3 +29,4 @@
 
 
 </script>
+

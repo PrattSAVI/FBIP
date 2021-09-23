@@ -14906,7 +14906,7 @@ var app = (function () {
     		map = value;
     	});
 
-    	let home = leafletSrc.easyButton('<i class="fa fa-home" aria-hidden="true"></i>', function (btn, map) {
+    	let home = leafletSrc.easyButton('<i class="fa fa-home symbol-home" aria-hidden="true"></i>', function (btn, map) {
     		map.setView([40.723, -73.961], 17);
     		dispatch('homebutton', { text: 'Hello!' });
     		event.preventDefault();
@@ -15002,7 +15002,7 @@ var app = (function () {
     	});
 
     	//Add button with function.
-    	leafletSrc.easyButton('<i class="fa fa-ellipsis-v" aria-hidden="true"></i>', (btn, map) => {
+    	leafletSrc.easyButton('<img class="symbol-key" src="https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/img/key_icon.svg" >', (btn, map) => {
     		reverseViz();
     		event.preventDefault();
     	}).addTo(map);

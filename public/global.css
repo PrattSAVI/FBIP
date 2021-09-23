@@ -269,7 +269,18 @@ a:visited:active {
     color: var(--otherParks);
 }
 
-.easy-button-button {
-    display: inherit!important;
-    margin: auto !important;
+.symbol-key {
+    width: 80%;
+    height: auto;
+}
+
+.leaflet-bar i,
+.leaflet-bar span {
+    line-height: 28px;
+    padding: 0px;
+    margin: auto;
+}
+
+symbol-home {
+    width: 90%!important;
 }
