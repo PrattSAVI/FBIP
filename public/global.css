@@ -270,17 +270,24 @@ a:visited:active {
 }
 
 .symbol-key {
-    width: 80%;
     height: auto;
+    width: 20px;
 }
 
-.leaflet-bar i,
-.leaflet-bar span {
+.leaflet-bar {
+    text-align: center;
+}
+
+.leaflet-bar>.easy-button-button>i,
+.leaflet-bar>.easy-button-button>span {
+    height: auto;
+    width: 20px;
     line-height: 28px;
     padding: 0px;
     margin: auto;
+    text-align: center;
 }
 
 symbol-home {
-    width: 90%!important;
+    width: 20px;
 }
