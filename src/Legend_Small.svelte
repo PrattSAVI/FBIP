@@ -24,7 +24,8 @@
     .legend {
         position:absolute;
         bottom:18px;
-        left:15px;
+        right:365px!important;
+        left:auto!important;
         font-size: 8pt;
         width: 230px;
         height: 100px;

@@ -86,7 +86,6 @@
 		width = e.detail.clientWidth;
 		height = e.detail.clientHeight;
 		ratio = width/height;
-		console.log( width,height,ratio);
 
 		if (width > 689 ){
 			shrunk = false;
@@ -106,16 +105,12 @@
 		//islandscape defines legend size. 
 		if( (ratio > 1) & (height < 600) ){
 			if (document.getElementsByClassName('legend')[0].style.visibility === 'visible'){
-				console.log("Landscape format, legend closed")
 				document.getElementsByClassName('legend')[0].style.visibility = "hidden";
 			} 
 			islandscape = true;
-			console.log( islandscape ); 
-
 		}
 		else{
 			islandscape = false;
-			console.log( islandscape ); 
 		}
 	}
 
