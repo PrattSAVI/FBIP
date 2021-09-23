@@ -1,7 +1,5 @@
 <script>
 	import LeafletMap from './Map.svelte'
-	import HomeButton from './Home.svelte'
-	//import LayerButton from './LayerButton.svelte'
 	import ButtonHome from './Button_Home.svelte'
 	import ButtonLayer from './Button_Layer.svelte'
 	import {onMount} from 'svelte'
@@ -133,10 +131,8 @@
 	<div class="two-column">
 		<div class="left-panel">
 			<LeafletMap >
-				<!--<HomeButton on:homebutton={handleClick}/>-->
 				<ButtonHome on:homebutton={handleClick}/>
 				<ButtonLayer />
-				<!--<LayerButton />-->
 				<GeoJson on:message={handleMessage} geojson={data.bip} />
 				<GeoJsonBorder geojson={data.border} />
 				<!--Legend Size is dependent on Mobile-->

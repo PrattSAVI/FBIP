@@ -44,8 +44,10 @@
         background-color: white;
         text-align: center;
         border-radius: 4px;
-        border:2px solid rgba(0,0,0,0.55);
+        border:2px solid rgba(0,0,0,0.2);
         cursor: pointer;
+        -webkit-background-clip: padding-box;
+        background-clip: padding-box;
     }
 
     img{
