@@ -7,8 +7,8 @@
 	import GeoJsonBorder from './GeojsonBorder.svelte';
 	import InfoPanel from './InfoPanel.svelte';
 	import Legend from './Legend.svelte';
+	import LegendSmall from './Legend_Small.svelte';
 	import ShrunkPanel from './ShrunkPanel.svelte';
-
 
 	//Retrieve Data from Github Repo
 	const url_lots = "https://raw.githubusercontent.com/PrattSAVI/FBIP/main/public/data/BIP_FinalLots.geojson";
@@ -81,6 +81,7 @@
 	let width;
 	let height;
 	let ratio;
+	let islandscape = false;
 	function setShrunk(e){
 		width = e.detail.clientWidth;
 		height = e.detail.clientHeight;
@@ -102,12 +103,19 @@
 		}
 
 		//Mobile on Landscape
+		//islandscape defines legend size. 
 		if( (ratio > 1) & (height < 600) ){
 			if (document.getElementsByClassName('legend')[0].style.visibility === 'visible'){
 				console.log("Landscape format, legend closed")
 				document.getElementsByClassName('legend')[0].style.visibility = "hidden";
 			} 
-			
+			islandscape = true;
+			console.log( islandscape ); 
+
+		}
+		else{
+			islandscape = false;
+			console.log( islandscape ); 
 		}
 	}
 
@@ -128,7 +136,14 @@
 				<LayerButton />
 				<GeoJson on:message={handleMessage} geojson={data.bip} />
 				<GeoJsonBorder geojson={data.border} />
-				<Legend />
+				<!--Legend Size is dependent on Mobile-->
+				{#key islandscape}
+					{#if islandscape == false}
+						<Legend />
+					{:else}
+						<LegendSmall />
+					{/if}
+				{/key}
 			</LeafletMap>
 		</div>
 

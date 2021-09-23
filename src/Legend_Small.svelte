@@ -9,12 +9,12 @@
 
     <div class="legend-item" >
         <div class="rect" style="background:var(--parkColor)"></div>
-        <div class="legend-text">Owned and managed by<br> the NYC Parks Dept.</div>
+        <div class="legend-text">Owned and managed by the <br>NYC Parks Dept.</div>
     </div>
 
     <div class="legend-item" >
         <div class="rect" style="background:var(--stateColor)"></div>
-        <div class="legend-text">Other Adjacent Waterfront Sites</div>
+        <div class="legend-text">Other Adjacent<br>Waterfront Sites</div>
     </div>
 
 </div>
@@ -23,14 +23,14 @@
 
     .legend {
         position:absolute;
-        bottom:15px;
+        bottom:18px;
         left:15px;
-        font-size: 10pt;
-        width: 260px;
-        height: 130px;
+        font-size: 8pt;
+        width: 230px;
+        height: 100px;
         z-index: 2000;
-        padding: 15px;
-        line-height: 10pt;
+        padding: 8px;
+        line-height: 0.8rem;
         border-radius: 8px;
         border-style: solid;
         border-color: rgb(211, 211, 211);
@@ -40,15 +40,15 @@
     }
 
     .legend-text{
-        font-size: 10pt;
+        font-size: 9pt;
         font-weight: 400;
         margin-left: 8px;
         color:#444;
     }
 
     .title{
-        font-size: 16pt;
-        margin-bottom: 10px;
+        font-size: 11pt;
+        margin-bottom: 6px;
         font-weight: 700;
         color: #555;
     }
@@ -59,9 +59,9 @@
     }
 
     .legend-item{
-        padding:5px;
+        padding:3px;
         display: grid;
-        grid-template-columns: 0.3fr 1fr;
+        grid-template-columns: 0.2fr 1fr;
     }
 
     .rect{
