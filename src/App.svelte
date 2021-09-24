@@ -71,7 +71,7 @@
 		shrunk = !shrunk;
 		if (shrunk == true){
 			document.getElementsByClassName('legend')[0].style.visibility = "visible";
-			document.getElementsByClassName('legend')[0].style.bottom = "65px";
+			document.getElementsByClassName('legend')[0].style.bottom = "70px";
 		} else{
 			document.getElementsByClassName('legend')[0].style.visibility = "hidden";
 		}

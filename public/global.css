@@ -268,17 +268,3 @@ a:link:active,
 a:visited:active {
     color: var(--otherParks);
 }
-
-.leaflet-bar {
-    text-align: center;
-}
-
-.leaflet-bar>.easy-button-button>i,
-.leaflet-bar>.easy-button-button>span {
-    height: auto;
-    width: 20px;
-    line-height: 28px;
-    padding: auto;
-    margin: auto;
-    text-align: center;
-}

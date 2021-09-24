@@ -42,7 +42,6 @@
         cursor: pointer;
         -webkit-background-clip: padding-box;
         background-clip: padding-box;
-
     }
 
     span{
