@@ -125,10 +125,10 @@
             <p><span id='info-title' >{active_data[0].properties['Text-Address']}</span></p>
 
             {#if active_data[0].properties['Text-Copy']}
-                <p><span id='info-title' >{active_data[0].properties['Text-Copy']}</span></p>
+                <p><span id='info-title' >{@html active_data[0].properties['Text-Copy']}</span></p>
             {:else}
-                <p><strong>Status: </strong><span id='info-title' >{active_data[0].properties['Text_History']}</span></p>
-                <p><strong>History: </strong> <span id='info-title' >{active_data[0].properties['Text_Status']}</span></p>
+                <p><strong>Status: </strong><span id='info-title' >{@html active_data[0].properties['Text_History']}</span></p>
+                <p><strong>History: </strong> <span id='info-title' >{@html active_data[0].properties['Text_Status']}</span></p>
             {/if}
 
             {#if active_data[0].properties['Text_Web']}
@@ -144,18 +144,23 @@
     {:else}
 
         <div class="info-title">
-            <span id='pane-title' >About the Map</span>
+            <span id='pane-title' >BIP Parcel Map</span>
         </div>
 
         <div class="info-container">
             <p>Bushwick Inlet Park is a mosaic public park project. Its multiple sections are in various phases of development. This map aims to help simplify this picture. Click or tap on a section within the park’s borders or adjacent spaces to see images, brief histories and the current development status of each space.
-            <br><br>This project is a collaboration between Pratt Institute’s <a href="https://commons.pratt.edu/savi/" target="_blank">Spatial Analysis & Visualization Initiative (SAVI)</a> and Friends of Bushwick Inlet Park. Support for this project has been provided by the <span style="color:var(--parkColor);font-weight:bold">City Parks Foundation</span> and the <span style="color:var(--parkColor);font-weight:bold">NYC Green Relief & Recovery Fund.</span>.
+            <br><br>This project is a collaboration between Pratt Institute’s <a href="https://commons.pratt.edu/savi/" target="_blank">Spatial Analysis & Visualization Initiative (SAVI)</a> and Friends of Bushwick Inlet Park. Support for this project has been provided by the 
+            <span style="color:var(--parkColor);font-weight:bold">Brooklyn Borough President,</span> <span style="color:var(--parkColor);font-weight:bold">City Parks Foundation</span> and the 
+            <span style="color:var(--parkColor);font-weight:bold">NYC Green Relief & Recovery Fund</span>.
             </p>
         </div>
 
     {/if}
 
 </div>
+
+
+
 
 
 
