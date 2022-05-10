@@ -21,16 +21,48 @@
 		bip:[],
 		border:[],
 	}
+	let table = [];
 
 	//Load Data
+	//https://docs.google.com/spreadsheets/d/1us5-06-JBfrqcsxBDfNWbMPZeMXbD6-dTSy_rqsmhP8/edit?usp=sharing
+	let spreadsheetId = '1us5-06-JBfrqcsxBDfNWbMPZeMXbD6-dTSy_rqsmhP8'
+	let sheet = 'Details'
+	const endpoint = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&tq&sheet=${sheet}`;
+
 	onMount(async () => {
+		// Lots
 		const res = await fetch( url_lots );
 		let data_lots = await res.json();
 		data.bip = data_lots.features;
 
+		// Borders
 		const res2 = await fetch( url_border );
 		let border_lots = await res2.json();
 		data.border = border_lots.features;
+
+		// Details, results in table. It is neded in Info Panel
+		const response = await fetch(endpoint);
+		const textData = await response.text();
+		const jsonData = JSON.parse( textData.substring(47).slice(0, -2) );
+		let data_table = jsonData['table'];
+
+		// Create JS Object from Google Sheet
+		data_table['rows'].forEach(el => {
+			let values = [];
+			let keys = [];
+			for(let i=0;i<18;i++){
+				let c = data_table['cols'][i]['label']
+				let v = (el['c'][i] != null) ? el['c'][i]['v'] : null;
+
+				values.push( v );
+				keys.push( c )
+			}
+
+			var result = {};
+			keys.forEach((key, i) => result[key] = values[i]);
+			table.push( result );
+			
+		});
 	});
 
 	//Handle Clicked Geojson Object, Point or Polygon. Returns active Polygon Object
@@ -114,7 +146,6 @@
 		}
 	}
 
-
 </script>
 
 <svelte:head>
@@ -151,7 +182,7 @@
 					&#10094;
 				</div>
 
-				<InfoPanel {active_data}/>
+				<InfoPanel {active_data} {table}/>
 			</div>
 		{:else}
 			<div class="right-panel shrunk">
