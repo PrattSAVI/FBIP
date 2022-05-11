@@ -32,12 +32,7 @@
 		// Lots
 		const res = await fetch( url_lots );
 		let data_lots = await res.json();
-		data.bip = data_lots.features;
-
-		// Borders
-		const res2 = await fetch( url_border );
-		let border_lots = await res2.json();
-		data.border = border_lots.features;
+		let temp = data_lots.features;
 
 		// Details, results in table. It is neded in Info Panel
 		const response = await fetch(endpoint);
@@ -62,6 +57,25 @@
 			table.push( result );
 			
 		});
+
+		//Add Owner Info to BIP
+		temp.forEach( el => {
+			console.log( el.properties.BBL )
+			let ac = table.filter( row =>{
+				return `${row['BBL']}` === el.properties.BBL
+			})
+			console.log( ac );
+			el.properties.Owner = ac[0]['Owner'];
+		})
+		
+		// Initiate data.BIP
+		data.bip = temp;
+
+		// Borders
+		const res2 = await fetch( url_border );
+		let border_lots = await res2.json();
+		data.border = border_lots.features;
+
 	});
 
 	//Handle Clicked Geojson Object, Point or Polygon. Returns active Polygon Object
