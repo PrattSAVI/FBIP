@@ -50,7 +50,7 @@
 		data_table['rows'].forEach(el => {
 			let values = [];
 			let keys = [];
-			for(let i=0;i<18;i++){
+			for(let i=0;i<13;i++){
 				let c = data_table['cols'][i]['label']
 				let v = (el['c'][i] != null) ? el['c'][i]['v'] : null;
 
@@ -191,7 +191,7 @@
 					&#10094;
 				</div>
 
-				<ShrunkPanel {active_data}/>
+				<ShrunkPanel {active_data} {table}/>
 			</div>
 		{/if}
 

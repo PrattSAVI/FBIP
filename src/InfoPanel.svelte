@@ -85,7 +85,7 @@
                     </div>
 
                     {#each active_photos as photo }  
-                        <img class="container-photos" alt="test" src= "./img/{photo.site}/{photo.photo}.jpg" />  
+                        <img class="container-photos" alt="test" src= "./img/{photo.site}/{photo.photo.trim()}.jpg" />  
                     {/each}
 
                     <div slot="next" on:click={showNextPage} class="custom-arrow custom-arrow-next">
@@ -134,10 +134,6 @@
     {/if}
 
 </div>
-
-
-
-
 
 
 <style>
