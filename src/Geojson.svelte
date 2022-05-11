@@ -71,7 +71,7 @@
     }
 
     function onEachFeature(feature, layer) {
-        //Only bind popup if BIP Column is not empty
+        //Only bind popup if Owner Column is not empty
         if( feature.properties.Owner ){
             layer.openTooltip();
             layer.on({
