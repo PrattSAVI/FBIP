@@ -65,7 +65,7 @@
         return {
             fillColor: getColor(feature.properties.Owner),
             color: LineColor(feature.properties.Owner),
-            fillOpacity: 0.9, //getFill(feature.properties.Owner),
+            fillOpacity: 0.9,
             weight: lineWeight(feature.properties.Owner),
             opacity: 0.9,
         };

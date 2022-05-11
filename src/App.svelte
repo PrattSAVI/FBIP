@@ -24,7 +24,6 @@
 	let table = [];
 
 	//Load Data
-	//https://docs.google.com/spreadsheets/d/1us5-06-JBfrqcsxBDfNWbMPZeMXbD6-dTSy_rqsmhP8/edit?usp=sharing
 	let spreadsheetId = '1us5-06-JBfrqcsxBDfNWbMPZeMXbD6-dTSy_rqsmhP8'
 	let sheet = 'Details'
 	const endpoint = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&tq&sheet=${sheet}`;
