@@ -7,7 +7,6 @@
 	const dispatch = createEventDispatcher();
 
     export let geojson;
-    console.log(geojson)
 
     //countValue is map object stored in the store.js
     let map;
@@ -73,7 +72,7 @@
 
     function onEachFeature(feature, layer) {
         //Only bind popup if BIP Column is not empty
-        if( feature.properties.BIP ){
+        if( feature.properties.Owner ){
             layer.openTooltip();
             layer.on({
                 click:activePolygon,

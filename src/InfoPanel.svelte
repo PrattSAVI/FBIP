@@ -102,8 +102,8 @@
             <p><span id='info-title' >{active_table[0]['Text-Acres']}</span></p>
             <p><span id='info-title' >{active_table[0]['Text-Address']}</span></p>
 
-            {#if active_data[0].properties['Text-Copy']}
-                <p><span id='info-title' >{@html active_data[0].properties['Text-Copy']}</span></p>
+            {#if active_table[0]['Text-Copy']}
+                <p><span id='info-title' >{@html active_table[0]['Text-Copy']}</span></p>
             {:else}
                 <p><strong>Status: </strong><span id='info-title' >{@html active_table[0]['Text_Status']}</span></p>
                 <p><strong>History: </strong> <span id='info-title' >{@html active_table[0]['Text_History']}</span></p>

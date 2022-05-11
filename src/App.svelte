@@ -29,12 +29,13 @@
 	const endpoint = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/gviz/tq?tqx=out:json&tq&sheet=${sheet}`;
 
 	onMount(async () => {
-		// Lots
+		
+		// Lots geojon geometry
 		const res = await fetch( url_lots );
 		let data_lots = await res.json();
 		let temp = data_lots.features;
 
-		// Details, results in table. It is neded in Info Panel
+		// Details from Google Sheets
 		const response = await fetch(endpoint);
 		const textData = await response.text();
 		const jsonData = JSON.parse( textData.substring(47).slice(0, -2) );
@@ -58,13 +59,11 @@
 			
 		});
 
-		//Add Owner Info to BIP
+		//Add Owner Info to BIP, this get pushed into Geojson for styling
 		temp.forEach( el => {
-			console.log( el.properties.BBL )
 			let ac = table.filter( row =>{
 				return `${row['BBL']}` === el.properties.BBL
 			})
-			console.log( ac );
 			el.properties.Owner = ac[0]['Owner'];
 		})
 		
